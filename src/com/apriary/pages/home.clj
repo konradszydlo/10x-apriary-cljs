@@ -1,4 +1,4 @@
-(ns com.apriary.home
+(ns com.apriary.pages.home
   (:require [com.biffweb :as biff]
             [com.apriary.middleware :as mid]
             [com.apriary.ui :as ui]

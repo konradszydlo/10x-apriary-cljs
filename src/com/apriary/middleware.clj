@@ -25,10 +25,10 @@
     (let [response (handler ctx)]
       (println "REQUEST")
       (biff/pprint ctx)
-      (def ctx* ctx)
+      ;(def ctx* ctx)
       (println "RESPONSE")
       (biff/pprint response)
-      (def response* response)
+      ;(def response* response)
       response)))
 
 (defn wrap-site-defaults [handler]

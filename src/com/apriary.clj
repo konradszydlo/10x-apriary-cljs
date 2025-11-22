@@ -1,8 +1,8 @@
 (ns com.apriary
   (:require [com.biffweb :as biff]
             [com.apriary.email :as email]
-            [com.apriary.app :as app]
-            [com.apriary.home :as home]
+            [com.apriary.pages.app :as app]
+            [com.apriary.pages.home :as home]
             [com.apriary.middleware :as mid]
             [com.apriary.ui :as ui]
             [com.apriary.schema :as schema]
@@ -30,7 +30,7 @@
 
 (def static-pages (apply biff/safe-merge (map :static modules)))
 
-(defn generate-assets! [ctx]
+(defn generate-assets! [_ctx]
   (biff/export-rum static-pages "target/resources/public")
   (biff/delete-old-files {:dir "target/resources/public"
                           :exts [".html"]}))

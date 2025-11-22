@@ -1,10 +1,10 @@
-(ns com.apriary.app
+(ns com.apriary.pages.app
   (:require [com.biffweb :as biff]
             [com.apriary.middleware :as mid]
             [com.apriary.ui :as ui]
             [xtdb.api :as xt]))
 
-(defn app [{:keys [session biff/db] :as ctx}]
+(defn app [{:keys [session biff/db] :as _ctx}]
   (let [{:user/keys [email]} (xt/entity db (:uid session))]
     (ui/page
       {}
