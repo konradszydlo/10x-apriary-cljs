@@ -8,3 +8,11 @@ The project is created as a part of an AI course [10xDevs](https://www.10xdevs.p
 ## Getting Started
 
 Run `clj -M:dev dev` to get started. See `clj -M:dev --help` for other commands.
+
+```shell
+cljfmt check
+
+cljfmt fix
+
+clj-kondo --lint src test
+```
