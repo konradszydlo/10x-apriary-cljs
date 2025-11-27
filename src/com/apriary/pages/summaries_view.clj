@@ -17,8 +17,11 @@
             [com.apriary.services.generation :as gen-service]
             [com.apriary.dto.summary :as summary-dto]
             [com.apriary.util :as util]
+            [cheshire.core]
             [clojure.string :as str]
             [clojure.tools.logging :as log]
+            [malli.core :as m]
+            [malli.error :as me]
             [rum.core :as rum]
             [xtdb.api :as xt]))
 
@@ -183,58 +186,172 @@
 
   Returns:
     Ring response with HTML body"
-  [ctx]
+  [{:keys [params errors] :as ctx}]
   (layout/app-page
    ctx
    {:page-title "New Summary"}
-   [:div.py-6
-    [:h1.text-2xl.font-bold.text-gray-900 "Create New Summary"]
+   [:main.max-w-2xl.mx-auto.py-6
+    ;; Breadcrumb/back link
+    [:a.text-blue-600.hover:text-blue-800.mb-4.inline-block
+     {:href "/summaries"}
+     "← Back to Summaries"]
 
-    [:form.mt-6.max-w-2xl.bg-white.shadow-sm.rounded-lg.p-6
-     {:hx-post "/summaries"
-      :hx-target "#form-container"
-      :hx-swap "outerHTML"}
+    ;; Page heading
+    [:h1.text-2xl.font-bold.mb-6 "Create New Summary"]
 
-     [:div#form-container
-      [:div
-       [:label.block.text-sm.font-medium.text-gray-700 {:for "hive-number"}
-        "Hive Number"]
-       [:input#hive-number.mt-1.block.w-full.rounded-md.border-gray-300.shadow-sm.focus:border-blue-500.focus:ring-blue-500
-        {:type "number"
-         :name "hive-number"
-         :required true
-         :min "1"}]]
+    ;; Form container with htmx
+    [:form.space-y-6
+     {:hx-post "/api/summaries"
+      :hx-ext "json-enc"
+      :hx-target "body"
+      :hx-swap "innerHTML"}
+     ;; Hive Number Field (optional)
+     [:div
+      [:label.block.text-sm.font-medium.text-gray-700
+       {:for "hive-number"}
+       "Hive Number"]
+      [:input.mt-1.block.w-full.rounded-md.border-gray-300.shadow-sm.focus:border-blue-500.focus:ring-blue-500
+       {:type "text"
+        :id "hive-number"
+        :name "hive-number"
+        :placeholder "e.g., A-01"
+        :value (:hive-number params)}]
+      (when-let [error (:hive-number errors)]
+        [:p.mt-1.text-sm.text-red-600 error])]
 
-      [:div.mt-4
-       [:label.block.text-sm.font-medium.text-gray-700 {:for "observation-date"}
-        "Observation Date"]
-       [:input#observation-date.mt-1.block.w-full.rounded-md.border-gray-300.shadow-sm.focus:border-blue-500.focus:ring-blue-500
-        {:type "date"
-         :name "observation-date"
-         :required true}]]
+     ;; Observation Date Field (optional)
+     [:div
+      [:label.block.text-sm.font-medium.text-gray-700
+       {:for "observation-date"}
+       "Observation Date"]
+      [:input.mt-1.block.w-full.rounded-md.border-gray-300.shadow-sm.focus:border-blue-500.focus:ring-blue-500
+       {:type "text"
+        :id "observation-date"
+        :name "observation-date"
+        :placeholder "DD-MM-YYYY"
+        :value (:observation-date params)}]
+      [:p.mt-1.text-xs.text-gray-500 "Format: DD-MM-YYYY"]
+      (when-let [error (:observation-date errors)]
+        [:p.mt-1.text-sm.text-red-600 error])]
 
-      [:div.mt-4
-       [:label.block.text-sm.font-medium.text-gray-700 {:for "special-feature"}
-        "Special Feature (Optional)"]
-       [:input#special-feature.mt-1.block.w-full.rounded-md.border-gray-300.shadow-sm.focus:border-blue-500.focus:ring-blue-500
-        {:type "text"
-         :name "special-feature"}]]
+     ;; Special Feature Field (optional)
+     [:div
+      [:label.block.text-sm.font-medium.text-gray-700
+       {:for "special-feature"}
+       "Special Feature"]
+      [:input.mt-1.block.w-full.rounded-md.border-gray-300.shadow-sm.focus:border-blue-500.focus:ring-blue-500
+       {:type "text"
+        :id "special-feature"
+        :name "special-feature"
+        :placeholder "e.g., Queen active"
+        :value (:special-feature params)}]
+      (when-let [error (:special-feature errors)]
+        [:p.mt-1.text-sm.text-red-600 error])]
 
-      [:div.mt-4
-       [:label.block.text-sm.font-medium.text-gray-700 {:for "content"}
-        "Summary Content"]
-       [:textarea#content.mt-1.block.w-full.rounded-md.border-gray-300.shadow-sm.focus:border-blue-500.focus:ring-blue-500
-        {:name "content"
-         :rows "6"
-         :required true}]]
+     ;; Content Field (required)
+     [:div
+      [:label.block.text-sm.font-medium.text-gray-700
+       {:for "content"}
+       "Observation Content "
+       [:span.text-red-600 "*"]]
+      [:textarea.mt-1.block.w-full.rounded-md.border-gray-300.shadow-sm.focus:border-blue-500.focus:ring-blue-500.resize-y
+       {:id "content"
+        :name "content"
+        :rows 10
+        :required true
+        :aria-required "true"
+        :aria-describedby "char-counter content-error"}
+       (:content params)]
+      [:div#char-counter.mt-1.text-sm.text-gray-600
+       {:aria-live "polite"}
+       "0 / 50,000 characters"]
+      (when-let [error (:content errors)]
+        [:p#content-error.mt-1.text-sm.text-red-600 error])]
 
-      [:div.mt-6.flex.gap-3
-       [:button.inline-flex.justify-center.px-4.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700.focus-visible:outline.focus-visible:outline-2
-        {:type "submit"}
-        "Create Summary"]
-       [:a.inline-flex.justify-center.px-4.py-2.border.border-gray-300.text-sm.font-medium.rounded-md.text-gray-700.bg-white.hover:bg-gray-50
-        {:href "/summaries"}
-        "Cancel"]]]]]))
+     ;; Submit Button
+     [:div.flex.justify-end
+      [:button.px-6.py-2.bg-blue-600.text-white.rounded-md.hover:bg-blue-700.focus:outline-none.focus:ring-2.focus:ring-blue-500.focus:ring-offset-2
+       {:type "submit"
+        :id "submit-btn"}
+       "Create Summary"]]]]))
+
+;; =============================================================================
+;; Malli Schema for Manual Summary Creation
+;; =============================================================================
+
+(def create-manual-summary-schema
+  "Schema for validating manual summary creation form data.
+
+  Field specifications:
+  - :hive-number - Optional string
+  - :observation-date - Optional string matching DD-MM-YYYY format
+  - :special-feature - Optional string
+  - :content - Required string, 50-50,000 characters after trim"
+  [:map
+   [:hive-number {:optional true} [:maybe :string]]
+   [:observation-date {:optional true} [:maybe [:re #"^\d{2}-\d{2}-\d{4}$"]]]
+   [:special-feature {:optional true} [:maybe :string]]
+   [:content [:string {:min 50 :max 50000}]]])
+
+;; =============================================================================
+;; API Handler for Manual Summary Creation
+;; =============================================================================
+
+(defn create-manual-summary-api-handler
+  "POST /api/summaries - Create new manual summary with Malli validation.
+
+  This handler processes the htmx form submission with JSON encoding.
+  On success, returns HX-Redirect header to main summaries page.
+  On validation error, re-renders form with error messages and preserved values.
+
+  Args:
+    ctx - Biff context map with body-params from htmx json-enc
+
+  Returns:
+    Ring response with HX-Redirect header or re-rendered form"
+  [{:keys [session biff.xtdb/node body-params] :as ctx}]
+  ;; Guard clause: authentication
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          params body-params]
+
+      ;; Validate with Malli schema
+      (if-let [validation-errors (m/explain create-manual-summary-schema params)]
+        ;; Validation failed - re-render form with errors
+        (let [humanized-errors (me/humanize validation-errors)]
+          {:status 400
+           :headers {"content-type" "text/html"}
+           :body (rum/render-static-markup
+                  (new-summary-page
+                   (assoc ctx
+                          :errors humanized-errors
+                          :params params)))})
+
+        ;; Validation passed - create summary
+        (let [[status result] (summary-service/create-manual-summary
+                               node user-id params)]
+
+          (if (= status :ok)
+            ;; Success: Redirect to summaries list with HX-Redirect
+            {:status 201
+             :headers {"HX-Redirect" "/summaries"
+                       "content-type" "application/json"}
+             :body (cheshire.core/generate-string
+                    {:message "Summary created successfully"})}
+
+            ;; Service error: Re-render form with error message
+            {:status 500
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (new-summary-page
+                     (assoc ctx
+                            :errors {:general (:message result)}
+                            :params params)))}))))))
 
 (defn create-summary-handler
   "POST /summaries - Create new summary with validation.
@@ -988,7 +1105,9 @@
                  :post create-summary-handler}]
             ["/new" {:get new-summary-page}]
             ["/:id" {:delete delete-summary-handler}]]
-   :api-routes [["/api/summaries/import" {:post import-csv-htmx-handler}]
+   :api-routes [["/api/summaries" {:post create-manual-summary-api-handler
+                                    :middleware [mid/wrap-signed-in]}]
+                ["/api/summaries/import" {:post import-csv-htmx-handler}]
                 ["/api/summaries/:id"
                  ["" {:patch update-summary-field-handler}]
                  ["/content" {:patch update-summary-content-handler}]
