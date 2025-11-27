@@ -625,6 +625,363 @@
              :body (rum/render-static-markup
                     (ui-helpers/error-toast-oob "Summary not found"))}))))))
 
+(defn update-summary-content-handler
+  "PATCH /api/summaries/{id}/content - Update summary content and return full card.
+
+  This handler specifically handles content updates, which may trigger source
+  changes (ai-full -> ai-partial). Returns the entire summary card refreshed.
+
+  Args:
+    ctx - Biff context with path-params: :id and params with :content
+
+  Returns:
+    Ring response with HTML for complete summary-card component"
+  [{:keys [session biff.xtdb/node biff/db path-params params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          summary-id-str (:id path-params)
+          content (:content params)
+          uuid-result (util/parse-uuid summary-id-str)]
+
+      ;; Guard clause: invalid UUID
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid summary ID"))}
+
+        (let [summary-id (second uuid-result)
+              ;; Get original summary to check source change
+              [get-status original] (summary-service/get-summary-by-id db summary-id user-id)]
+
+          ;; Guard clause: summary not found
+          (if (not= get-status :ok)
+            {:status 404
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (ui-helpers/error-toast-oob "Summary not found"))}
+
+            ;; Perform update
+            (let [original-source (:summary/source original)
+                  [status result] (summary-service/update-summary
+                                   node summary-id user-id {:content content})]
+
+              (if (= status :ok)
+                ;; Success: Return updated card + success toast
+                (let [summary-dto (summary-dto/entity->dto result)
+                      new-source (:summary/source result)
+                      source-changed? (and (= original-source :ai-full)
+                                          (= new-source :ai-partial))
+
+                      ;; Get generation if it exists
+                      generation (when-let [gen-id (:summary/generation-id result)]
+                                  (xt/entity db gen-id))
+                      generation-date (when generation
+                                       (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
+                                             zone (java.time.ZoneId/systemDefault)]
+                                         (.format (.atZone (:generation/created-at generation) zone) formatter)))
+
+                      toast-message (if source-changed?
+                                     "Summary updated and marked as AI Edited"
+                                     "Summary updated successfully")]
+                  {:status 200
+                   :headers {"content-type" "text/html"}
+                   :body (rum/render-static-markup
+                          [:div
+                           ;; Main target: entire summary card
+                           (summary-card/summary-card
+                            {:summary summary-dto
+                             :generation-date generation-date
+                             :model-name (when generation (:generation/model generation))})
+
+                           ;; OOB: Success toast
+                           (ui-helpers/success-toast-oob toast-message)])})
+
+                ;; Error: Return error toast
+                (let [error-message (case (:code result)
+                                     "NOT_FOUND" "Summary not found"
+                                     "VALIDATION_ERROR" (:message result)
+                                     "Failed to update content")]
+                  {:status (case (:code result)
+                            "NOT_FOUND" 404
+                            "VALIDATION_ERROR" 400
+                            500)
+                   :headers {"content-type" "text/html"}
+                   :body (rum/render-static-markup
+                          [:div
+                           ;; Return edit form with error
+                           (summary-card/content-edit-form
+                            {:content content
+                             :summary-id summary-id-str
+                             :error error-message})
+
+                           ;; OOB: Error toast
+                           (ui-helpers/error-toast-oob error-message)])})))))))))
+
+(defn update-summary-field-handler
+  "PATCH /api/summaries/{id} - Update a single summary field with inline edit.
+
+  This handler supports updating individual fields (hive-number, observation-date,
+  special-feature) and returns the updated field in display mode.
+
+  Args:
+    ctx - Biff context with path-params: :id and params with field data
+
+  Returns:
+    Ring response with HTML for inline-editable-field component in display mode"
+  [{:keys [session biff.xtdb/node path-params params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          summary-id-str (:id path-params)
+          uuid-result (util/parse-uuid summary-id-str)]
+
+      ;; Guard clause: invalid UUID
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid summary ID"))}
+
+        (let [summary-id (second uuid-result)
+              ;; Extract field update from params
+              field-name (cond
+                          (contains? params :hive-number) "hive-number"
+                          (contains? params :observation-date) "observation-date"
+                          (contains? params :special-feature) "special-feature"
+                          (contains? params :content) "content"
+                          :else nil)
+              field-value (when field-name (get params (keyword field-name)))
+              updates (when field-name {(keyword field-name) field-value})]
+
+          ;; Guard clause: no valid field provided
+          (if-not updates
+            {:status 400
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (ui-helpers/error-toast-oob "No valid field to update"))}
+
+            ;; Perform update
+            (let [[status result] (summary-service/update-summary
+                                   node summary-id user-id updates)]
+
+              (if (= status :ok)
+                ;; Success: Return updated field in display mode + success toast
+                (let [summary-dto (summary-dto/entity->dto result)
+                      updated-value (get summary-dto (keyword field-name))
+                      placeholder (case field-name
+                                    "hive-number" "e.g., A-01"
+                                    "observation-date" "DD-MM-YYYY"
+                                    "special-feature" "e.g., Queen active"
+                                    "")]
+                  {:status 200
+                   :headers {"content-type" "text/html"}
+                   :body (rum/render-static-markup
+                          [:div
+                           ;; Main target: updated field in display mode
+                           (summary-card/inline-editable-field
+                            {:field-name field-name
+                             :value updated-value
+                             :summary-id (:id summary-dto)
+                             :placeholder placeholder})
+
+                           ;; OOB: Success toast
+                           (ui-helpers/success-toast-oob
+                            (str (str/capitalize (str/replace field-name "-" " ")) " updated"))])})
+
+                ;; Error: Return error field + error toast
+                (let [error-message (case (:code result)
+                                     "NOT_FOUND" "Summary not found"
+                                     "VALIDATION_ERROR" (:message result)
+                                     "Failed to update field")]
+                  {:status (case (:code result)
+                            "NOT_FOUND" 404
+                            "VALIDATION_ERROR" 400
+                            500)
+                   :headers {"content-type" "text/html"}
+                   :body (rum/render-static-markup
+                          [:div
+                           ;; Main target: field with error
+                           (summary-card/inline-editable-field-edit
+                            {:field-name field-name
+                             :value field-value
+                             :summary-id summary-id-str
+                             :placeholder ""
+                             :error error-message})
+
+                           ;; OOB: Error toast
+                           (ui-helpers/error-toast-oob error-message)])})))))))))
+
+(defn accept-summary-handler
+  "POST /api/summaries/{id}/accept - Accept an AI-generated summary.
+
+  This handler accepts a single summary and updates generation counters.
+  Returns updated action buttons with 'Accepted' badge.
+
+  Args:
+    ctx - Biff context with path-params: :id
+
+  Returns:
+    Ring response with HTML for action-buttons component"
+  [{:keys [session biff.xtdb/node path-params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          summary-id-str (:id path-params)
+          uuid-result (util/parse-uuid summary-id-str)]
+
+      ;; Guard clause: invalid UUID
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid summary ID"))}
+
+        (let [summary-id (second uuid-result)
+              [status result] (summary-service/accept-summary node summary-id user-id)]
+
+          (if (= status :ok)
+            ;; Success: Return updated action buttons + success toast
+            (let [{:keys [summary generation]} result
+                  summary-dto (summary-dto/entity->dto summary)
+                  generation-id (str (:generation/id generation))
+
+                  ;; Check if all summaries in generation are now accepted
+                  all-accepted? (>= (+ (:generation/accepted-unedited-count generation 0)
+                                      (:generation/accepted-edited-count generation 0))
+                                   (:generation/generated-count generation 0))]
+              {:status 200
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      [:div
+                       ;; Main target: updated action buttons
+                       (summary-card/action-buttons
+                        {:summary-id (:id summary-dto)
+                         :source (:source summary-dto)
+                         :accepted? true})
+
+                       ;; OOB: Update generation header if all accepted
+                       (when all-accepted?
+                         (let [generation-date (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
+                                                    zone (java.time.ZoneId/systemDefault)]
+                                                (.format (.atZone (:generation/created-at generation) zone) formatter))
+                               summaries-count (:generation/generated-count generation)]
+                           [:div {:hx-swap-oob (str "outerHTML:#generation-group-" generation-id " .generation-header")}
+                            ((requiring-resolve 'com.apriary.ui.summaries-list/generation-group-header)
+                             {:generation generation
+                              :generation-date generation-date
+                              :summaries-count summaries-count
+                              :all-accepted? true})]))
+
+                       ;; OOB: Success toast
+                       (ui-helpers/success-toast-oob "Summary accepted")])})
+
+            ;; Error: Return error toast
+            (let [error-message (case (:code result)
+                                 "NOT_FOUND" "Summary not found"
+                                 "INVALID_OPERATION" (:message result)
+                                 "CONFLICT" (:message result)
+                                 "Failed to accept summary")]
+              {:status (case (:code result)
+                        "NOT_FOUND" 404
+                        "INVALID_OPERATION" 400
+                        "CONFLICT" 409
+                        500)
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      (ui-helpers/error-toast-oob error-message))})))))))
+
+(defn bulk-accept-generation-handler
+  "POST /api/generations/{id}/accept-summaries - Bulk accept all summaries in generation.
+
+  This handler accepts all summaries in a generation batch and refreshes
+  the entire generation group with updated state.
+
+  Args:
+    ctx - Biff context with path-params: :id
+
+  Returns:
+    Ring response with HTML for complete generation-group component"
+  [{:keys [session biff.xtdb/node biff/db path-params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          generation-id-str (:id path-params)
+          uuid-result (util/parse-uuid generation-id-str)]
+
+      ;; Guard clause: invalid UUID
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid generation ID"))}
+
+        (let [generation-id (second uuid-result)
+              [status result] (gen-service/bulk-accept-summaries-for-generation
+                               node generation-id user-id)]
+
+          (if (= status :ok)
+            ;; Success: Re-render entire generation group
+            (let [{:keys [generation total-summaries]} result
+
+                  ;; Fetch all summaries for this generation
+                  summaries-query {:find '[?s]
+                                  :where [['?s :summary/generation-id generation-id]
+                                          ['?s :summary/user-id user-id]]}
+                  summary-ids (xt/q db summaries-query)
+                  summaries (mapv (fn [[?s]] (xt/entity db ?s)) summary-ids)
+
+                  ;; Format generation date
+                  generation-date (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
+                                       zone (java.time.ZoneId/systemDefault)]
+                                   (.format (.atZone (:generation/created-at generation) zone) formatter))]
+
+              {:status 200
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      [:div
+                       ;; Main target: entire generation group
+                       ((requiring-resolve 'com.apriary.ui.summaries-list/generation-group)
+                        {:generation generation
+                         :summaries summaries
+                         :generation-date generation-date
+                         :all-accepted? true
+                         :summaries-count (count summaries)})
+
+                       ;; OOB: Success toast
+                       (ui-helpers/success-toast-oob
+                        (str total-summaries " " (if (= total-summaries 1) "summary" "summaries") " accepted"))])})
+
+            ;; Error: Return error toast
+            (let [error-message (case (:code result)
+                                 "NOT_FOUND" "Generation not found"
+                                 "FORBIDDEN" "Access denied"
+                                 "Failed to accept summaries")]
+              {:status (case (:code result)
+                        "NOT_FOUND" 404
+                        "FORBIDDEN" 403
+                        500)
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      (ui-helpers/error-toast-oob error-message))})))))))
+
 (def module
   {:routes ["/summaries" {:middleware [mid/wrap-signed-in]}
             ["" {:get summaries-list-page
@@ -633,7 +990,11 @@
             ["/:id" {:delete delete-summary-handler}]]
    :api-routes [["/api/summaries/import" {:post import-csv-htmx-handler}]
                 ["/api/summaries/:id"
+                 ["" {:patch update-summary-field-handler}]
+                 ["/content" {:patch update-summary-content-handler}]
+                 ["/accept" {:post accept-summary-handler}]
                  ["/field/:field-name/edit" {:get get-field-edit-mode-handler}]
                  ["/edit" {:get get-content-edit-mode-handler}]
                  ["/cancel-edit" {:get cancel-content-edit-handler}]
-                 ["/toggle-content" {:get toggle-content-handler}]]]})
+                 ["/toggle-content" {:get toggle-content-handler}]]
+                ["/api/generations/:id/accept-summaries" {:post bulk-accept-generation-handler}]]})

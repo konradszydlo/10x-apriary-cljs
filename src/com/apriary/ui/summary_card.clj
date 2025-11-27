@@ -13,7 +13,8 @@
   - action-buttons: Edit, accept, and delete operations
   - generation-metadata: AI generation information
   - content-toggle: Expand/collapse for long content
-  - summary-card: Complete card assembly")
+  - summary-card: Complete card assembly"
+  (:require [clojure.string :as str]))
 
 ;; =============================================================================
 ;; Constants
@@ -287,9 +288,9 @@
   [{:keys [content summary-id error]}]
   [:div.content-area.editing
    [:form
-    {:hx-patch (str "/api/summaries/" summary-id)
+    {:hx-patch (str "/api/summaries/" summary-id "/content")
      :hx-swap "outerHTML"
-     :hx-target "closest .content-area"}
+     :hx-target "closest .summary-card"}
 
     (when error
       [:p.text-red-600.text-sm.mb-2 error])
@@ -297,15 +298,23 @@
     [:textarea.w-full.border.rounded.p-3.resize-y
      {:name "content"
       :rows "10"
+      :id (str "content-textarea-" summary-id)
       :class (if error "border-red-500 focus:ring-red-500" "focus:ring-2 focus:ring-blue-500")
       :aria-label "Summary content"
       :minlength content-min-length
-      :maxlength content-max-length}
+      :maxlength content-max-length
+      :oninput "updateCharCount(this)"}
      content]
+
+    ;; Character counter
+    [:div.char-counter.text-sm.text-gray-600.mt-1
+     {:id (str "char-counter-" summary-id)}
+     (str (count (str/trim content)) " / " content-max-length " characters")]
 
     [:div.flex.gap-2.mt-2
      [:button.px-4.py-2.bg-blue-600.text-white.rounded.hover:bg-blue-700.disabled:opacity-50.flex.items-center.gap-2
       {:type "submit"
+       :id (str "save-btn-" summary-id)
        :hx-indicator "#save-spinner"}
       [:span.htmx-indicator
        {:id "save-spinner"}
