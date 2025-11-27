@@ -57,12 +57,15 @@
 
 (defn validate-sort-by
   "Validate sort_by parameter against whitelist.
-   
+
    Returns:
    - [:ok field] on success
    - [:error {:code 'INVALID_SORT_BY' :message msg}] on failure"
   [sort-by]
-  (let [field (str/trim (or sort-by "created_at"))]
+  (let [trimmed (str/trim (or sort-by ""))
+        field (if (str/blank? trimmed)
+                "created_at"
+                trimmed)]
     (if (contains? SORT_BY_WHITELIST field)
       [:ok field]
       [:error {:code "INVALID_SORT_BY"
@@ -74,12 +77,15 @@
 
 (defn validate-sort-order
   "Validate sort_order parameter.
-   
+
    Returns:
    - [:ok order] on success (lowercase)
    - [:error {:code 'INVALID_SORT_ORDER' :message msg}] on failure"
   [sort-order]
-  (let [order (str/lower-case (str/trim (or sort-order "desc")))]
+  (let [trimmed (str/trim (or sort-order ""))
+        order (if (str/blank? trimmed)
+                "desc"
+                (str/lower-case trimmed))]
     (if (contains? SORT_ORDER_WHITELIST order)
       [:ok order]
       [:error {:code "INVALID_SORT_ORDER"

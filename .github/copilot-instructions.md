@@ -1,6 +1,8 @@
-# AI Rules for {{project-name}}
+# AI Rules for 
 
-{{project-description}}
+Apriary Application
+
+Apriary Summary is an MVP web application designed to automate the process of creating summaries of apiary work. The application is aimed at owners of small apiaries who need a quick and efficient way to document the history of work performed on hives.
 
 ## Tech Stack
 

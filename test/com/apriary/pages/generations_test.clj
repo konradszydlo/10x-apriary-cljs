@@ -169,43 +169,23 @@
       (is (= (:code (:body response)) "NOT_FOUND")))))
 
 ;; ============================================================================
-;; Step 7: POST /api/summaries/generation/accept - Bulk accept summaries
+;; POST /api/generations/:id/accept-summaries - Bulk accept summaries for a generation
 ;; ============================================================================
 
 (deftest bulk-accept-unauthorized-test
   "Test that unauthenticated requests are rejected"
   (with-open [node (test-xtdb-node [])]
-    (let [ctx (assoc (make-ctx node nil :body {:generation-id (str (java.util.UUID/randomUUID))})
+    (let [ctx (assoc (make-ctx node nil :path-params {:id (str (java.util.UUID/randomUUID))})
                      :session {})
           response (generations/bulk-accept-generation-handler ctx)]
       (is (= (:status response) 401))
       (is (= (:code (:body response)) "UNAUTHORIZED")))))
 
-(deftest bulk-accept-no-body-test
-  "Test that missing body returns error"
-  (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
-          ctx (assoc (make-ctx node user-id) :body nil)
-          response (generations/bulk-accept-generation-handler ctx)]
-
-      (is (= (:status response) 400))
-      (is (= (:code (:body response)) "INVALID_REQUEST")))))
-
-(deftest bulk-accept-missing-generation-id-test
-  "Test that missing generation-id field returns error"
-  (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
-          ctx (make-ctx node user-id :body {})
-          response (generations/bulk-accept-generation-handler ctx)]
-
-      (is (= (:status response) 400))
-      (is (= (:code (:body response)) "MISSING_FIELD")))))
-
 (deftest bulk-accept-invalid-uuid-test
   "Test that invalid UUID format returns error"
   (with-open [node (test-xtdb-node [])]
     (let [user-id (java.util.UUID/randomUUID)
-          ctx (make-ctx node user-id :body {:generation-id "not-a-uuid"})
+          ctx (make-ctx node user-id :path-params {:id "not-a-uuid"})
           response (generations/bulk-accept-generation-handler ctx)]
 
       (is (= (:status response) 400))
@@ -216,7 +196,7 @@
   (with-open [node (test-xtdb-node [])]
     (let [user-id (java.util.UUID/randomUUID)
           fake-id (java.util.UUID/randomUUID)
-          ctx (make-ctx node user-id :body {:generation-id (str fake-id)})
+          ctx (make-ctx node user-id :path-params {:id (str fake-id)})
           response (generations/bulk-accept-generation-handler ctx)]
 
       (is (= (:status response) 404))
@@ -230,7 +210,7 @@
           [_ created] (gen-service/create-generation node owner-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           gen-id (:generation/id created)
-          ctx (make-ctx node other-id :body {:generation-id (str gen-id)})
+          ctx (make-ctx node other-id :path-params {:id (str gen-id)})
           response (generations/bulk-accept-generation-handler ctx)]
 
       (is (= (:status response) 403))
@@ -243,7 +223,7 @@
           [_ created] (gen-service/create-generation node user-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           gen-id (:generation/id created)
-          ctx (make-ctx node user-id :body {:generation-id (str gen-id)})
+          ctx (make-ctx node user-id :path-params {:id (str gen-id)})
           response (generations/bulk-accept-generation-handler ctx)]
 
       (is (= (:status response) 200))
@@ -261,7 +241,7 @@
           [_ created] (gen-service/create-generation node user-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           gen-id (:generation/id created)
-          ctx (make-ctx node user-id :body {:generation-id (str gen-id)})
+          ctx (make-ctx node user-id :path-params {:id (str gen-id)})
           response (generations/bulk-accept-generation-handler ctx)]
 
       (is (= (:status response) 200))

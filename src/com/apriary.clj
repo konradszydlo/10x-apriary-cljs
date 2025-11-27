@@ -4,6 +4,7 @@
             [com.apriary.pages.app :as app]
             [com.apriary.pages.home :as home]
             [com.apriary.pages.generations :as generations]
+            [com.apriary.pages.summaries :as summaries]
             [com.apriary.middleware :as mid]
             [com.apriary.ui :as ui]
             [com.apriary.schema :as schema]
@@ -20,6 +21,7 @@
    (biff/authentication-module {})
    home/module
    generations/module
+   summaries/module
    schema/module])
 
 (def routes [["" {:middleware [mid/wrap-site-defaults]}

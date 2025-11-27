@@ -78,51 +78,45 @@
               "INVALID_INPUT" {:status 400 :body result}
               {:status 500 :body result})))))))
 
-;; Step 7: POST /api/summaries/generation/accept - Bulk accept summaries
+;; POST /api/generations/:id/accept-summaries - Bulk accept summaries for a generation
 (defn bulk-accept-generation-handler
-  [{:keys [session biff.xtdb/node body] :as _ctx}]
+  [{:keys [session biff.xtdb/node path-params] :as _ctx}]
+  ;; Guard clause: authentication
   (if-not (some? (:uid session))
     {:status 401 :body (util/unauthorized-error)}
 
-    (if-not (some? body)
-      {:status 400 :body (util/validation-error "INVALID_REQUEST" "Request body is required")}
+    (let [user-id (:uid session)
+          generation-id-str (:id path-params)
+          uuid-result (util/parse-uuid generation-id-str)]
 
-      (if-not (contains? body :generation-id)
-        {:status 400
-         :body (util/validation-error "MISSING_FIELD" "Missing required field: generation-id"
-                                      :field "generation-id")}
+      ;; Guard clause: invalid UUID
+      (if (= (first uuid-result) :error)
+        {:status 400 :body (second uuid-result)}
 
-        (let [generation-id-str (:generation-id body)
-              uuid-result (util/parse-uuid generation-id-str)]
+        ;; Happy path
+        (let [generation-id (second uuid-result)
+              [status result] (gen-service/bulk-accept-summaries-for-generation
+                               node generation-id user-id)]
 
-          (if (= (first uuid-result) :error)
-            {:status 400 :body (second uuid-result)}
+          (if (= status :ok)
+            (let [{:keys [generation unedited-count edited-count
+                          manual-count total-summaries]} result]
+              {:status 200
+               :body (gen-dto/bulk-accept->response
+                      generation unedited-count edited-count
+                      manual-count total-summaries)})
 
-            (let [user-id (:uid session)
-                  generation-id (second uuid-result)
-                  [status result] (gen-service/bulk-accept-summaries-for-generation
-                                   node generation-id user-id)]
-
-              (if (= status :ok)
-                (let [{:keys [generation unedited-count edited-count
-                              manual-count total-summaries]} result]
-                  {:status 200
-                   :body (gen-dto/bulk-accept->response
-                          generation unedited-count edited-count
-                          manual-count total-summaries)})
-
-                (case (:code result)
-                  "NOT_FOUND" {:status 404 :body result}
-                  "FORBIDDEN" {:status 403 :body result}
-                  "DATA_INTEGRITY_ERROR" {:status 400 :body result}
-                  "INVALID_INPUT" {:status 400 :body result}
-                  {:status 500 :body result})))))))))
+            ;; Error handling
+            (case (:code result)
+              "NOT_FOUND" {:status 404 :body result}
+              "FORBIDDEN" {:status 403 :body result}
+              "DATA_INTEGRITY_ERROR" {:status 400 :body result}
+              "INVALID_INPUT" {:status 400 :body result}
+              {:status 500 :body result})))))))
 
 ;; Route definitions
 (def module
   {:api-routes ["/api/generations"
                 {:get list-generations-handler}
-                ["/:id" {:get get-generation-handler}]]
-
-   :routes ["/api/summaries"
-            ["/generation/accept" {:post bulk-accept-generation-handler}]]})
+                ["/:id" {:get get-generation-handler}
+                 ["/accept-summaries" {:post bulk-accept-generation-handler}]]]})
