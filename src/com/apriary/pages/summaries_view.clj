@@ -9,10 +9,16 @@
   (:require [com.apriary.middleware :as mid]
             [com.apriary.ui.layout :as layout]
             [com.apriary.ui.helpers :as ui-helpers]
+            [com.apriary.ui.csv-import :as csv-import]
             [com.apriary.services.summary :as summary-service]
+            [com.apriary.services.csv-import :as csv-service]
+            [com.apriary.services.openrouter :as openrouter-service]
+            [com.apriary.services.generation :as gen-service]
             [com.apriary.util :as util]
             [clojure.string :as str]
-            [rum.core :as rum]))
+            [clojure.tools.logging :as log]
+            [rum.core :as rum]
+            [xtdb.api :as xt]))
 
 (defn summary-card
   "Renders a single summary card.
@@ -105,12 +111,15 @@
            {:href "/summaries/new"}
            "+ New Summary"]]]
 
-        [:div.mt-6
+        ;; CSV Import Section
+        (csv-import/csv-import-section)
+
+        ;; Summaries List
+        [:div#summaries-list.mt-6
          (if (empty? (:summaries result))
            [:div.text-center.py-12
-            [:p.text-gray-500 "No summaries yet. Create your first summary to get started!"]]
-           [:div
-            (map summary-card (:summaries result))])]])
+            [:p.text-gray-500 "No summaries yet. Import a CSV or create your first summary to get started!"]]
+           (map summary-card (:summaries result)))]])
 
       ;; Error case
       (layout/app-page
@@ -278,9 +287,161 @@
                                          :heading "Failed to Create Summary")}
                   (new-summary-page ctx))})))))
 
+(defn import-csv-htmx-handler
+  "POST /api/summaries/import - Import CSV and generate summaries (HTMX version).
+
+  This handler returns HTML responses for htmx integration:
+  - Success: New summary cards + success toast + rejected rows (if any)
+  - Error: Error message OOB swap
+
+  Args:
+    ctx - Biff context map with body params
+
+  Returns:
+    Ring response with HTML body and OOB swaps"
+  [{:keys [session biff.xtdb/node body] :as _ctx}]
+  ;; Guard clause: authentication
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    ;; Guard clause: request body required
+    (if-not (some? body)
+      {:status 400
+       :headers {"content-type" "text/html"}
+       :body (rum/render-static-markup
+              (csv-import/error-message-oob-html
+               {:error "Request body is required"
+                :code "INVALID_REQUEST"
+                :heading "Invalid Request"}))}
+
+      ;; Guard clause: csv field required
+      (if-not (contains? body :csv)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (csv-import/error-message-oob-html
+                 {:error "Missing required field: csv"
+                  :code "MISSING_FIELD"
+                  :heading "Validation Error"}))}
+
+        ;; Happy path
+        (let [user-id (:uid session)
+              csv-string (:csv body)
+
+              ;; Step 1: Parse and validate CSV
+              [csv-status csv-result] (csv-service/process-csv-import csv-string)]
+
+          ;; Guard clause: CSV processing failed
+          (if (= csv-status :error)
+            {:status 400
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (csv-import/error-message-oob-html csv-result))}
+
+            (let [{:keys [valid-rows rejected-rows rows-submitted
+                          rows-valid rows-rejected]} csv-result]
+
+              ;; Guard clause: no valid rows
+              (if (zero? rows-valid)
+                {:status 400
+                 :headers {"content-type" "text/html"}
+                 :body (rum/render-static-markup
+                        [:div
+                         (csv-import/error-message-oob-html
+                          {:error "All CSV rows failed validation"
+                           :code "VALIDATION_ERROR"
+                           :heading "Validation Error"})
+                         (csv-import/rejected-rows-oob-html rejected-rows)])}
+
+                ;; Step 2: Generate AI summaries
+                (let [[ai-status ai-result] (openrouter-service/generate-summaries-batch
+                                             valid-rows)]
+
+                  ;; Guard clause: AI generation failed
+                  (if (= ai-status :error)
+                    {:status 500
+                     :headers {"content-type" "text/html"}
+                     :body (rum/render-static-markup
+                            (csv-import/error-message-oob-html
+                             (assoc ai-result :heading "AI Generation Error")))}
+
+                    (let [{:keys [summaries model duration-ms]} ai-result
+
+                          ;; Step 3: Create Generation record
+                          [gen-status gen-result] (gen-service/create-generation
+                                                   node user-id model
+                                                   rows-valid duration-ms)]
+
+                      ;; Guard clause: generation creation failed
+                      (if (= gen-status :error)
+                        {:status 500
+                         :headers {"content-type" "text/html"}
+                         :body (rum/render-static-markup
+                                (csv-import/error-message-oob-html
+                                 (assoc gen-result :heading "Database Error")))}
+
+                        (let [generation gen-result
+                              generation-id (:generation/id generation)
+                              now (java.time.Instant/now)
+
+                              ;; Step 4: Create Summary records
+                              summary-entities (mapv (fn [summary]
+                                                       (let [summary-id (java.util.UUID/randomUUID)]
+                                                         {:xt/id summary-id
+                                                          :summary/id summary-id
+                                                          :summary/user-id user-id
+                                                          :summary/generation-id generation-id
+                                                          :summary/source :ai-full
+                                                          :summary/hive-number (:hive-number summary)
+                                                          :summary/observation-date (:observation-date summary)
+                                                          :summary/special-feature (:special-feature summary)
+                                                          :summary/content (:content summary)
+                                                          :summary/created-at now
+                                                          :summary/updated-at now}))
+                                                     summaries)
+
+                              tx-ops (mapv (fn [entity] [:xtdb.api/put entity]) summary-entities)
+                              _ (xt/submit-tx node tx-ops)]
+
+                          (log/info "CSV import completed (htmx)"
+                                    :user-id user-id
+                                    :generation-id generation-id
+                                    :rows-submitted rows-submitted
+                                    :rows-valid rows-valid
+                                    :rows-rejected rows-rejected
+                                    :summaries-created (count summary-entities))
+
+                          ;; Step 5: Build HTML response with OOB swaps
+                          (let [success-message (str (count summary-entities)
+                                                     " summaries generated successfully"
+                                                     (when (pos? rows-rejected)
+                                                       (str ". " rows-rejected " rows rejected.")))
+                                main-content (map summary-card summary-entities)
+                                toast (ui-helpers/success-toast-oob success-message)
+                                rejected-rows-html (when (seq rejected-rows)
+                                                     (csv-import/rejected-rows-oob-html rejected-rows))
+                                clear-form (csv-import/clear-form-oob-html)]
+
+                            {:status 201
+                             :headers {"content-type" "text/html"}
+                             :body (rum/render-static-markup
+                                    [:div
+                                     ;; Main target: new summary cards
+                                     main-content
+                                     ;; OOB: success toast
+                                     toast
+                                     ;; OOB: rejected rows (if any)
+                                     rejected-rows-html
+                                     ;; OOB: clear form
+                                     clear-form])}))))))))))))))
+
 (def module
   {:routes ["/summaries" {:middleware [mid/wrap-signed-in]}
             ["" {:get summaries-list-page
                  :post create-summary-handler}]
             ["/new" {:get new-summary-page}]
-            ["/:id" {:delete delete-summary-handler}]]})
+            ["/:id" {:delete delete-summary-handler}]]
+   :api-routes [["/api/summaries/import" {:post import-csv-htmx-handler}]]})
