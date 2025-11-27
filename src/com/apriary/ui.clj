@@ -48,13 +48,33 @@
    [:.flex-grow]
    [:.flex-grow]))
 
-(defn on-error [{:keys [status _ex] :as ctx}]
-  {:status status
-   :headers {"content-type" "text/html"}
-   :body (rum/render-static-markup
-          (page
-           ctx
-           [:h1.text-lg.font-bold
-            (if (= status 404)
-              "Page not found."
-              "Something went wrong.")]))})
+(defn on-error [{:keys [status ex session] :as ctx}]
+  (let [error-data (when ex
+                     {:error (if (= status 404)
+                               "The page you're looking for doesn't exist."
+                               "An unexpected error occurred.")
+                      :code (if (= status 404) "NOT_FOUND" "INTERNAL_ERROR")
+                      :heading (if (= status 404) "Page Not Found" "Error")
+                      :timestamp (str (java.time.Instant/now))})]
+    {:status status
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            ;; Use app-page layout if user is authenticated, otherwise use simple page
+            (if (:uid session)
+              ((requiring-resolve 'com.apriary.ui.layout/app-page)
+               ctx
+               {:error-message error-data
+                :page-title (if (= status 404) "Not Found" "Error")}
+               [:div.py-6
+                [:h1.text-2xl.font-bold.text-gray-900
+                 (if (= status 404) "Page Not Found" "Something Went Wrong")]
+                [:p.mt-4.text-gray-600
+                 (if (= status 404)
+                   "The page you're looking for doesn't exist."
+                   "We're sorry, but something went wrong. Please try again.")]])
+              (page
+               ctx
+               [:h1.text-lg.font-bold
+                (if (= status 404)
+                  "Page not found."
+                  "Something went wrong.")])))}))
