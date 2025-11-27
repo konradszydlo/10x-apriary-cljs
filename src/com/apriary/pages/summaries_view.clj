@@ -10,10 +10,12 @@
             [com.apriary.ui.layout :as layout]
             [com.apriary.ui.helpers :as ui-helpers]
             [com.apriary.ui.csv-import :as csv-import]
+            [com.apriary.ui.summary-card :as summary-card]
             [com.apriary.services.summary :as summary-service]
             [com.apriary.services.csv-import :as csv-service]
             [com.apriary.services.openrouter :as openrouter-service]
             [com.apriary.services.generation :as gen-service]
+            [com.apriary.dto.summary :as summary-dto]
             [com.apriary.util :as util]
             [clojure.string :as str]
             [clojure.tools.logging :as log]
@@ -438,10 +440,200 @@
                                      ;; OOB: clear form
                                      clear-form])}))))))))))))))
 
+;; =============================================================================
+;; HTMX Route Handlers for Summary Card Interactions
+;; =============================================================================
+
+(defn get-field-edit-mode-handler
+  "GET /api/summaries/{id}/field/{field-name}/edit - Return inline field in edit mode.
+
+  Args:
+    ctx - Biff context with path-params: :id and :field-name
+
+  Returns:
+    Ring response with HTML for inline-editable-field-edit component"
+  [{:keys [session biff/db path-params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          summary-id-str (:id path-params)
+          field-name (:field-name path-params)
+          uuid-result (util/parse-uuid summary-id-str)]
+
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid summary ID"))}
+
+        (let [summary-id (second uuid-result)
+              [status result] (summary-service/get-summary-by-id db summary-id user-id)]
+
+          (if (= status :ok)
+            (let [summary-dto (summary-dto/entity->dto result)
+                  field-value (get summary-dto (keyword field-name))
+                  placeholder (case field-name
+                                "hive-number" "e.g., A-01"
+                                "observation-date" "DD-MM-YYYY"
+                                "special-feature" "e.g., Queen active"
+                                "")]
+              {:status 200
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      (summary-card/inline-editable-field-edit
+                       {:field-name field-name
+                        :value field-value
+                        :summary-id (:id summary-dto)
+                        :placeholder placeholder}))})
+
+            {:status 404
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (ui-helpers/error-toast-oob "Summary not found"))}))))))
+
+(defn get-content-edit-mode-handler
+  "GET /api/summaries/{id}/edit - Return content area in edit mode.
+
+  Args:
+    ctx - Biff context with path-params: :id
+
+  Returns:
+    Ring response with HTML for content-edit-form component"
+  [{:keys [session biff/db path-params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          summary-id-str (:id path-params)
+          uuid-result (util/parse-uuid summary-id-str)]
+
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid summary ID"))}
+
+        (let [summary-id (second uuid-result)
+              [status result] (summary-service/get-summary-by-id db summary-id user-id)]
+
+          (if (= status :ok)
+            (let [summary-dto (summary-dto/entity->dto result)]
+              {:status 200
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      (summary-card/content-edit-form
+                       {:content (:content summary-dto)
+                        :summary-id (:id summary-dto)}))})
+
+            {:status 404
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (ui-helpers/error-toast-oob "Summary not found"))}))))))
+
+(defn cancel-content-edit-handler
+  "GET /api/summaries/{id}/cancel-edit - Return content area in display mode.
+
+  Args:
+    ctx - Biff context with path-params: :id
+
+  Returns:
+    Ring response with HTML for content-display component"
+  [{:keys [session biff/db path-params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          summary-id-str (:id path-params)
+          uuid-result (util/parse-uuid summary-id-str)]
+
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid summary ID"))}
+
+        (let [summary-id (second uuid-result)
+              [status result] (summary-service/get-summary-by-id db summary-id user-id)]
+
+          (if (= status :ok)
+            (let [summary-dto (summary-dto/entity->dto result)]
+              {:status 200
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      (summary-card/content-display
+                       {:content (:content summary-dto)
+                        :summary-id (:id summary-dto)
+                        :expanded? false}))})
+
+            {:status 404
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (ui-helpers/error-toast-oob "Summary not found"))}))))))
+
+(defn toggle-content-handler
+  "GET /api/summaries/{id}/toggle-content - Toggle content expansion state.
+
+  Args:
+    ctx - Biff context with path-params: :id and query-params: :expanded
+
+  Returns:
+    Ring response with HTML for content-display component"
+  [{:keys [session biff/db path-params params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          summary-id-str (:id path-params)
+          current-expanded (= "true" (:expanded params))
+          new-expanded (not current-expanded)
+          uuid-result (util/parse-uuid summary-id-str)]
+
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid summary ID"))}
+
+        (let [summary-id (second uuid-result)
+              [status result] (summary-service/get-summary-by-id db summary-id user-id)]
+
+          (if (= status :ok)
+            (let [summary-dto (summary-dto/entity->dto result)]
+              {:status 200
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      (summary-card/content-display
+                       {:content (:content summary-dto)
+                        :summary-id (:id summary-dto)
+                        :expanded? new-expanded}))})
+
+            {:status 404
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (ui-helpers/error-toast-oob "Summary not found"))}))))))
+
 (def module
   {:routes ["/summaries" {:middleware [mid/wrap-signed-in]}
             ["" {:get summaries-list-page
                  :post create-summary-handler}]
             ["/new" {:get new-summary-page}]
             ["/:id" {:delete delete-summary-handler}]]
-   :api-routes [["/api/summaries/import" {:post import-csv-htmx-handler}]]})
+   :api-routes [["/api/summaries/import" {:post import-csv-htmx-handler}]
+                ["/api/summaries/:id"
+                 ["/field/:field-name/edit" {:get get-field-edit-mode-handler}]
+                 ["/edit" {:get get-content-edit-mode-handler}]
+                 ["/cancel-edit" {:get cancel-content-edit-handler}]
+                 ["/toggle-content" {:get toggle-content-handler}]]]})
