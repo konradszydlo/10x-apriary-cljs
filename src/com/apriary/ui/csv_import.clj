@@ -161,7 +161,7 @@ Queen sighting confirmed today...;A-03;24-11-2025;Queen present"}
   "Renders the CSV import form with htmx integration.
 
   The form handles:
-  - CSV data submission to /api/summaries/import
+  - CSV data submission to /api/summaries-import
   - Loading state management via htmx indicators
   - OOB swap for rejected rows display
 
@@ -169,7 +169,7 @@ Queen sighting confirmed today...;A-03;24-11-2025;Queen present"}
     Hiccup vector representing the CSV import form"
   []
   [:form.space-y-4
-   {:hx-post "/api/summaries/import"
+   {:hx-post "/api/summaries-import"
     :hx-ext "json-enc"
     :hx-target "#summaries-list"
     :hx-swap "afterbegin"

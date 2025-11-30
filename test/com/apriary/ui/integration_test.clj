@@ -14,7 +14,6 @@
 ;; Toast Component Tests
 ;; =============================================================================
 
-
 (deftest toast-html-generation-test
   (testing "Success toast with auto-dismiss"
     (let [toast-html (toast/toast-html
@@ -226,5 +225,4 @@
   (run-tests 'com.apriary.ui.integration-test)
 
   ;; Run specific test
-  (test-var #'toast-html-generation-test)
-  )
+  (test-var #'toast-html-generation-test))

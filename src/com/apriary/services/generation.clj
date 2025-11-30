@@ -350,28 +350,29 @@
             unedited-count (or (get grouped :ai-full) 0)
             edited-count (or (get grouped :ai-partial) 0)
             manual-count (or (get grouped :manual) 0)
-            total-summaries (count summary-results)]
+            total-summaries (count summary-results)
 
-        ;; Update generation counters
-        (let [update-result (update-counters node generation-id unedited-count edited-count)]
-          (if (= (first update-result) :ok)
-            (let [updated (second update-result)]
-              (log/info "Bulk accepted summaries for generation"
-                        :generation-id generation-id
-                        :user-id user-id
-                        :unedited-count unedited-count
-                        :edited-count edited-count
-                        :manual-count manual-count
-                        :total-summaries total-summaries)
+            ;; Update generation counters
+            [status updated :as update-result] (update-counters node generation-id unedited-count edited-count)]
 
-              [:ok {:generation      updated
-                    :unedited-count  unedited-count
-                    :edited-count    edited-count
-                    :manual-count    manual-count
-                    :total-summaries total-summaries}])
+        (if (= status :ok)
+          (do
+            (log/info "Bulk accepted summaries for generation"
+                      :generation-id generation-id
+                      :user-id user-id
+                      :unedited-count unedited-count
+                      :edited-count edited-count
+                      :manual-count manual-count
+                      :total-summaries total-summaries)
 
-            ;; Error updating counters - propagate error
-            update-result))))
+            [:ok {:generation      updated
+                  :unedited-count  unedited-count
+                  :edited-count    edited-count
+                  :manual-count    manual-count
+                  :total-summaries total-summaries}])
+
+          ;; Error updating counters - propagate error
+          update-result)))
 
     (catch IllegalArgumentException e
       (let [msg (.getMessage e)]

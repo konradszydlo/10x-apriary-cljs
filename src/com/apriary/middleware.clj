@@ -47,9 +47,13 @@
 
 (defn wrap-api-defaults [handler]
   (-> handler
+      biff/wrap-anti-forgery-websockets
+      csrf/wrap-anti-forgery
+      biff/wrap-session
       muuntaja/wrap-params
       muuntaja/wrap-format
-      (rd/wrap-defaults rd/api-defaults)))
+      (rd/wrap-defaults (-> rd/api-defaults
+                            (assoc-in [:security :anti-forgery] false)))))
 
 (defn wrap-base-defaults [handler]
   (-> handler

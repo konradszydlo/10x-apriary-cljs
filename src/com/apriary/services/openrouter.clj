@@ -131,14 +131,14 @@
   (defn call-openrouter-api
     "Make HTTP request to OpenRouter API (PRODUCTION - NOT YET IMPLEMENTED)."
     [observations model api-key]
-    (let [endpoint "https://openrouter.ai/api/v1/chat/completions"
-          headers {"Authorization" (str "Bearer " api-key)
-                   "Content-Type" "application/json"}
-          body {:model model
-                :messages (mapv (fn [obs]
-                                  {:role "user"
-                                   :content (build-prompt (:observation obs))})
-                                observations)}]
+    (let [_endpoint "https://openrouter.ai/api/v1/chat/completions"
+          _headers {"Authorization" (str "Bearer " api-key)
+                    "Content-Type" "application/json"}
+          _body {:model model
+                 :messages (mapv (fn [obs]
+                                   {:role "user"
+                                    :content (build-prompt (:observation obs))})
+                                 observations)}]
       ;; HTTP POST request
       ;; Parse JSON response
       ;; Extract summaries

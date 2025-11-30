@@ -115,8 +115,8 @@
               {:status 500 :body result})))))))
 
 ;; Route definitions
+;; Note: bulk-accept-generation-handler route is defined in summaries_view.clj for HTMX compatibility
 (def module
   {:api-routes ["/api/generations"
                 {:get list-generations-handler}
-                ["/:id" {:get get-generation-handler}
-                 ["/accept-summaries" {:post bulk-accept-generation-handler}]]]})
+                ["/:id" {:get get-generation-handler}]]})

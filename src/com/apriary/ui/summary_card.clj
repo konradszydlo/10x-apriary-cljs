@@ -181,6 +181,7 @@
 
   The field is rendered as an input with htmx attributes for automatic saving
   on blur+change events. A loading spinner appears during save operations.
+  Pressing Escape cancels edit and reverts to original value.
 
   Args:
     field-name - Field identifier
@@ -195,7 +196,8 @@
   (let [input-type (if (= field-name "observation-date") "text" "text")
         pattern (when (= field-name "observation-date") "\\d{2}-\\d{2}-\\d{4}")]
     [:div.editable-field.editing
-     {:data-field-name field-name}
+     {:data-field-name field-name
+      :data-original-value (or value "")}
      [:input.border.rounded.px-2.py-1.focus:ring-2.focus:ring-blue-500
       (merge
        {:type input-type
@@ -208,7 +210,11 @@
         :hx-target "closest .editable-field"
         :hx-swap "outerHTML"
         :hx-indicator (str "#spinner-" field-name)
-        :aria-label (str "Edit " field-name)}
+        :aria-label (str "Edit " field-name)
+        :_ (str "on keydown[key=='Escape'] "
+                "halt the event "
+                "then fetch /api/summaries/" summary-id "/field/" field-name "/display "
+                "then put the result into the closest .editable-field")}
        (when pattern
          {:pattern pattern}))]
      [:span.htmx-indicator.inline.ml-1
@@ -431,7 +437,7 @@
   (when (> content-length content-preview-length)
     [:button.content-toggle.text-blue-600.hover:text-blue-700.hover:underline.text-sm.flex.items-center.gap-1.transition-colors
      {:type "button"
-      :hx-get (str "/api/summaries/" summary-id "/toggle-content")
+      :hx-get (str "/api/summaries/" summary-id "/toggle-content?expanded=" (boolean expanded?))
       :hx-target (str "#summary-content-" summary-id)
       :hx-swap "outerHTML"
       :aria-expanded (str (boolean expanded?))
@@ -487,29 +493,29 @@
       ;; Left side: Source badge and metadata
       [:div.flex.flex-col.gap-2.flex-1
        ;; Source badge
-       [source-badge {:source source}]
+       (source-badge {:source source})
 
        ;; Metadata fields
        [:div.metadata-section.flex.flex-wrap.gap-3.items-center
         ;; Hive number
-        [inline-editable-field
+        (inline-editable-field
          {:field-name "hive-number"
           :value hive-number
           :summary-id id
-          :placeholder "e.g., A-01"}]
+          :placeholder "e.g., A-01"})
 
         ;; Observation date
-        [inline-editable-field
+        (inline-editable-field
          {:field-name "observation-date"
           :value observation-date
           :summary-id id
-          :placeholder "DD-MM-YYYY"}]]]
+          :placeholder "DD-MM-YYYY"})]]
 
       ;; Right side: Action buttons
-      [action-buttons
+      (action-buttons
        {:summary-id id
         :source source
-        :accepted? accepted?}]]
+        :accepted? accepted?})]
 
      ;; =======================================================================
      ;; Card Body
@@ -518,19 +524,19 @@
 
       ;; Special feature tag (if present)
       (when (seq special-feature)
-        [special-feature-tag
+        (special-feature-tag
          {:special-feature special-feature
-          :summary-id id}])
+          :summary-id id}))
 
       ;; Content area (display or edit mode)
       (if edit-mode?
-        [content-edit-form
+        (content-edit-form
          {:content content
-          :summary-id id}]
-        [content-display
+          :summary-id id})
+        (content-display
          {:content content
           :summary-id id
-          :expanded? expanded?}])]
+          :expanded? expanded?}))]
 
      ;; =======================================================================
      ;; Card Footer
@@ -538,13 +544,13 @@
      [:div.card-footer.flex.justify-between.items-center.mt-4
 
       ;; Generation metadata (AI summaries only)
-      [generation-metadata
+      (generation-metadata
        {:generation-id generation-id
         :generation-date generation-date
-        :model-name model-name}]
+        :model-name model-name})
 
       ;; Content toggle (long content only)
-      [content-toggle
+      (content-toggle
        {:summary-id id
         :content-length (count content)
-        :expanded? expanded?}]]]))
+        :expanded? expanded?})]]))

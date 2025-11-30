@@ -11,6 +11,7 @@
             [com.apriary.ui.helpers :as ui-helpers]
             [com.apriary.ui.csv-import :as csv-import]
             [com.apriary.ui.summary-card :as summary-card]
+            [com.apriary.ui.summaries-list :as summaries-list]
             [com.apriary.services.summary :as summary-service]
             [com.apriary.services.csv-import :as csv-service]
             [com.apriary.services.openrouter :as openrouter-service]
@@ -94,14 +95,24 @@
   (let [user-id (:uid session)
         sort-by (or (:sort-by params) "created-at")
         sort-order (or (:sort-order params) "desc")
-        [status result] (summary-service/list-summaries
-                         db user-id
-                         :sort-by sort-by
-                         :sort-order sort-order
-                         :limit 100
-                         :offset 0)]
 
-    (if (= status :ok)
+        ;; Fetch summaries
+        [summaries-status summaries-result] (summary-service/list-summaries
+                                             db user-id
+                                             :sort-by sort-by
+                                             :sort-order sort-order
+                                             :limit 100
+                                             :offset 0)
+
+        ;; Fetch generations
+        [gen-status gen-result] (gen-service/list-user-generations
+                                 db user-id
+                                 :sort-by "created-at"
+                                 :sort-order "desc"
+                                 :limit 100
+                                 :offset 0)]
+
+    (if (and (= summaries-status :ok) (= gen-status :ok))
       (layout/app-page
        ctx
        {:page-title "Summaries"}
@@ -113,28 +124,90 @@
            {:href "/csv-import"}
            "Import CSV"]
           [:a.inline-flex.items-center.px-3.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700
-           {:href "/summaries/new"}
+           {:href "/summaries-new"}
            "+ New Summary"]]]
 
-        ;; CSV Import Section
+         ; CSV Import Section
         (csv-import/csv-import-section)
 
-        ;; Summaries List
+         ;; Summaries List with Generation Grouping
         [:div#summaries-list.mt-6
-         (if (empty? (:summaries result))
-           [:div.text-center.py-12
-            [:p.text-gray-500 "No summaries yet. Import a CSV or create your first summary to get started!"]]
-           (map summary-card (:summaries result)))]])
+         (summaries-list/summaries-list-section
+          {:summaries (:summaries summaries-result)
+           :generations (:generations gen-result)})]])
 
       ;; Error case
       (layout/app-page
        ctx
        {:page-title "Summaries"
-        :error-message (assoc result
+        :error-message (assoc (or summaries-result gen-result)
                               :timestamp (str (java.time.Instant/now))
                               :heading "Failed to Load Summaries")}
        [:div.py-6
         [:h1.text-2xl.font-bold.text-gray-900 "Summaries"]]))))
+
+#_(defn summaries-list-page
+    "GET /summaries - Display list of all summaries.
+
+  Args:
+    ctx - Biff context map
+
+  Returns:
+    Ring response with HTML body"
+    [{:keys [session biff/db params] :as ctx}]
+    (let [user-id (:uid session)
+          sort-by (or (:sort-by params) "created-at")
+          sort-order (or (:sort-order params) "desc")
+
+        ;; Fetch summaries
+          [summaries-status summaries-result] (summary-service/list-summaries
+                                               db user-id
+                                               :sort-by sort-by
+                                               :sort-order sort-order
+                                               :limit 100
+                                               :offset 0)
+
+        ;; Fetch generations
+          [gen-status gen-result] (gen-service/list-user-generations
+                                   db user-id
+                                   :sort-by "created-at"
+                                   :sort-order "desc"
+                                   :limit 100
+                                   :offset 0)]
+
+      (if (and (= summaries-status :ok) (= gen-status :ok))
+        (layout/app-page
+         ctx
+         {:page-title "Summaries"}
+         [:div.py-6
+          [:div.flex.items-center.justify-between
+           [:h1.text-2xl.font-bold.text-gray-900 "Summaries"]
+           [:div.flex.gap-2
+            [:a.inline-flex.items-center.px-3.py-2.border.border-gray-300.text-sm.font-medium.rounded-md.text-gray-700.bg-white.hover:bg-gray-50
+             {:href "/csv-import"}
+             "Import CSV"]
+            [:a.inline-flex.items-center.px-3.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700
+             {:href "/summaries-new"}
+             "+ New Summary"]]]
+
+        ;; CSV Import Section
+          (csv-import/csv-import-section)
+
+        ;; Summaries List with Generation Grouping
+          [:div#summaries-list.mt-6
+           (summaries-list/summaries-list-section
+            {:summaries (:summaries summaries-result)
+             :generations (:generations gen-result)})]])
+
+      ;; Error case
+        (layout/app-page
+         ctx
+         {:page-title "Summaries"
+          :error-message (assoc (or summaries-result gen-result)
+                                :timestamp (str (java.time.Instant/now))
+                                :heading "Failed to Load Summaries")}
+         [:div.py-6
+          [:h1.text-2xl.font-bold.text-gray-900 "Summaries"]]))))
 
 (defn delete-summary-handler
   "DELETE /summaries/{id} - Delete summary with toast notification.
@@ -179,7 +252,7 @@
                     (ui-helpers/error-toast-oob error-message))}))))))
 
 (defn new-summary-page
-  "GET /summaries/new - Display form for creating new summary.
+  "GET /summaries-new - Display form for creating new summary.
 
   Args:
     ctx - Biff context map
@@ -407,7 +480,7 @@
                   (new-summary-page ctx))})))))
 
 (defn import-csv-htmx-handler
-  "POST /api/summaries/import - Import CSV and generate summaries (HTMX version).
+  "POST /api/summaries-import - Import CSV and generate summaries (HTMX version).
 
   This handler returns HTML responses for htmx integration:
   - Success: New summary cards + success toast + rejected rows (if any)
@@ -418,7 +491,7 @@
 
   Returns:
     Ring response with HTML body and OOB swaps"
-  [{:keys [session biff.xtdb/node body] :as _ctx}]
+  [{:keys [session biff.xtdb/node body-params] :as _ctx}]
   ;; Guard clause: authentication
   (if-not (some? (:uid session))
     {:status 401
@@ -427,7 +500,7 @@
             (ui-helpers/error-toast-oob "Authentication required"))}
 
     ;; Guard clause: request body required
-    (if-not (some? body)
+    (if-not (some? body-params)
       {:status 400
        :headers {"content-type" "text/html"}
        :body (rum/render-static-markup
@@ -437,7 +510,7 @@
                 :heading "Invalid Request"}))}
 
       ;; Guard clause: csv field required
-      (if-not (contains? body :csv)
+      (if-not (contains? body-params :csv)
         {:status 400
          :headers {"content-type" "text/html"}
          :body (rum/render-static-markup
@@ -448,7 +521,7 @@
 
         ;; Happy path
         (let [user-id (:uid session)
-              csv-string (:csv body)
+              csv-string (:csv body-params)
 
               ;; Step 1: Parse and validate CSV
               [csv-status csv-result] (csv-service/process-csv-import csv-string)]
@@ -612,6 +685,57 @@
              :body (rum/render-static-markup
                     (ui-helpers/error-toast-oob "Summary not found"))}))))))
 
+(defn cancel-field-edit-handler
+  "GET /api/summaries/{id}/field/{field-name}/display - Return inline field in display mode (cancel edit).
+
+  Args:
+    ctx - Biff context with path-params: :id and :field-name
+
+  Returns:
+    Ring response with HTML for inline-editable-field component in display mode"
+  [{:keys [session biff/db path-params] :as _ctx}]
+  (if-not (some? (:uid session))
+    {:status 401
+     :headers {"content-type" "text/html"}
+     :body (rum/render-static-markup
+            (ui-helpers/error-toast-oob "Authentication required"))}
+
+    (let [user-id (:uid session)
+          summary-id-str (:id path-params)
+          field-name (:field-name path-params)
+          uuid-result (util/parse-uuid summary-id-str)]
+
+      (if (= (first uuid-result) :error)
+        {:status 400
+         :headers {"content-type" "text/html"}
+         :body (rum/render-static-markup
+                (ui-helpers/error-toast-oob "Invalid summary ID"))}
+
+        (let [summary-id (second uuid-result)
+              [status result] (summary-service/get-summary-by-id db summary-id user-id)]
+
+          (if (= status :ok)
+            (let [summary-dto (summary-dto/entity->dto result)
+                  field-value (get summary-dto (keyword field-name))
+                  placeholder (case field-name
+                                "hive-number" "e.g., A-01"
+                                "observation-date" "DD-MM-YYYY"
+                                "special-feature" "e.g., Queen active"
+                                "")]
+              {:status 200
+               :headers {"content-type" "text/html"}
+               :body (rum/render-static-markup
+                      (summary-card/inline-editable-field
+                       {:field-name field-name
+                        :value field-value
+                        :summary-id (:id summary-dto)
+                        :placeholder placeholder}))})
+
+            {:status 404
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (ui-helpers/error-toast-oob "Summary not found"))}))))))
+
 (defn get-content-edit-mode-handler
   "GET /api/summaries/{id}/edit - Return content area in edit mode.
 
@@ -704,7 +828,7 @@
     ctx - Biff context with path-params: :id and query-params: :expanded
 
   Returns:
-    Ring response with HTML for content-display component"
+    Ring response with HTML for content-display component and updated toggle button"
   [{:keys [session biff/db path-params params] :as _ctx}]
   (if-not (some? (:uid session))
     {:status 401
@@ -728,14 +852,24 @@
               [status result] (summary-service/get-summary-by-id db summary-id user-id)]
 
           (if (= status :ok)
-            (let [summary-dto (summary-dto/entity->dto result)]
+            (let [summary-dto (summary-dto/entity->dto result)
+                  content (:content summary-dto)]
               {:status 200
                :headers {"content-type" "text/html"}
                :body (rum/render-static-markup
-                      (summary-card/content-display
-                       {:content (:content summary-dto)
-                        :summary-id (:id summary-dto)
-                        :expanded? new-expanded}))})
+                      [:div
+                       ;; Main target: updated content display
+                       (summary-card/content-display
+                        {:content content
+                         :summary-id (:id summary-dto)
+                         :expanded? new-expanded})
+
+                       ;; OOB swap: updated toggle button with new state
+                       [:div {:hx-swap-oob (str "outerHTML:.content-toggle[aria-controls='summary-content-" (:id summary-dto) "']")}
+                        (summary-card/content-toggle
+                         {:summary-id (:id summary-dto)
+                          :content-length (count content)
+                          :expanded? new-expanded})]])})
 
             {:status 404
              :headers {"content-type" "text/html"}
@@ -793,19 +927,19 @@
                 (let [summary-dto (summary-dto/entity->dto result)
                       new-source (:summary/source result)
                       source-changed? (and (= original-source :ai-full)
-                                          (= new-source :ai-partial))
+                                           (= new-source :ai-partial))
 
                       ;; Get generation if it exists
                       generation (when-let [gen-id (:summary/generation-id result)]
-                                  (xt/entity db gen-id))
+                                   (xt/entity db gen-id))
                       generation-date (when generation
-                                       (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
-                                             zone (java.time.ZoneId/systemDefault)]
-                                         (.format (.atZone (:generation/created-at generation) zone) formatter)))
+                                        (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
+                                              zone (java.time.ZoneId/systemDefault)]
+                                          (.format (.atZone (:generation/created-at generation) zone) formatter)))
 
                       toast-message (if source-changed?
-                                     "Summary updated and marked as AI Edited"
-                                     "Summary updated successfully")]
+                                      "Summary updated and marked as AI Edited"
+                                      "Summary updated successfully")]
                   {:status 200
                    :headers {"content-type" "text/html"}
                    :body (rum/render-static-markup
@@ -821,13 +955,13 @@
 
                 ;; Error: Return error toast
                 (let [error-message (case (:code result)
-                                     "NOT_FOUND" "Summary not found"
-                                     "VALIDATION_ERROR" (:message result)
-                                     "Failed to update content")]
+                                      "NOT_FOUND" "Summary not found"
+                                      "VALIDATION_ERROR" (:message result)
+                                      "Failed to update content")]
                   {:status (case (:code result)
-                            "NOT_FOUND" 404
-                            "VALIDATION_ERROR" 400
-                            500)
+                             "NOT_FOUND" 404
+                             "VALIDATION_ERROR" 400
+                             500)
                    :headers {"content-type" "text/html"}
                    :body (rum/render-static-markup
                           [:div
@@ -872,11 +1006,11 @@
         (let [summary-id (second uuid-result)
               ;; Extract field update from params
               field-name (cond
-                          (contains? params :hive-number) "hive-number"
-                          (contains? params :observation-date) "observation-date"
-                          (contains? params :special-feature) "special-feature"
-                          (contains? params :content) "content"
-                          :else nil)
+                           (contains? params :hive-number) "hive-number"
+                           (contains? params :observation-date) "observation-date"
+                           (contains? params :special-feature) "special-feature"
+                           (contains? params :content) "content"
+                           :else nil)
               field-value (when field-name (get params (keyword field-name)))
               updates (when field-name {(keyword field-name) field-value})]
 
@@ -917,13 +1051,13 @@
 
                 ;; Error: Return error field + error toast
                 (let [error-message (case (:code result)
-                                     "NOT_FOUND" "Summary not found"
-                                     "VALIDATION_ERROR" (:message result)
-                                     "Failed to update field")]
+                                      "NOT_FOUND" "Summary not found"
+                                      "VALIDATION_ERROR" (:message result)
+                                      "Failed to update field")]
                   {:status (case (:code result)
-                            "NOT_FOUND" 404
-                            "VALIDATION_ERROR" 400
-                            500)
+                             "NOT_FOUND" 404
+                             "VALIDATION_ERROR" 400
+                             500)
                    :headers {"content-type" "text/html"}
                    :body (rum/render-static-markup
                           [:div
@@ -978,8 +1112,8 @@
 
                   ;; Check if all summaries in generation are now accepted
                   all-accepted? (>= (+ (:generation/accepted-unedited-count generation 0)
-                                      (:generation/accepted-edited-count generation 0))
-                                   (:generation/generated-count generation 0))]
+                                       (:generation/accepted-edited-count generation 0))
+                                    (:generation/generated-count generation 0))]
               {:status 200
                :headers {"content-type" "text/html"}
                :body (rum/render-static-markup
@@ -993,8 +1127,8 @@
                        ;; OOB: Update generation header if all accepted
                        (when all-accepted?
                          (let [generation-date (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
-                                                    zone (java.time.ZoneId/systemDefault)]
-                                                (.format (.atZone (:generation/created-at generation) zone) formatter))
+                                                     zone (java.time.ZoneId/systemDefault)]
+                                                 (.format (.atZone (:generation/created-at generation) zone) formatter))
                                summaries-count (:generation/generated-count generation)]
                            [:div {:hx-swap-oob (str "outerHTML:#generation-group-" generation-id " .generation-header")}
                             ((requiring-resolve 'com.apriary.ui.summaries-list/generation-group-header)
@@ -1008,15 +1142,15 @@
 
             ;; Error: Return error toast
             (let [error-message (case (:code result)
-                                 "NOT_FOUND" "Summary not found"
-                                 "INVALID_OPERATION" (:message result)
-                                 "CONFLICT" (:message result)
-                                 "Failed to accept summary")]
+                                  "NOT_FOUND" "Summary not found"
+                                  "INVALID_OPERATION" (:message result)
+                                  "CONFLICT" (:message result)
+                                  "Failed to accept summary")]
               {:status (case (:code result)
-                        "NOT_FOUND" 404
-                        "INVALID_OPERATION" 400
-                        "CONFLICT" 409
-                        500)
+                         "NOT_FOUND" 404
+                         "INVALID_OPERATION" 400
+                         "CONFLICT" 409
+                         500)
                :headers {"content-type" "text/html"}
                :body (rum/render-static-markup
                       (ui-helpers/error-toast-oob error-message))})))))))
@@ -1060,15 +1194,15 @@
 
                   ;; Fetch all summaries for this generation
                   summaries-query {:find '[?s]
-                                  :where [['?s :summary/generation-id generation-id]
-                                          ['?s :summary/user-id user-id]]}
+                                   :where [['?s :summary/generation-id generation-id]
+                                           ['?s :summary/user-id user-id]]}
                   summary-ids (xt/q db summaries-query)
                   summaries (mapv (fn [[?s]] (xt/entity db ?s)) summary-ids)
 
                   ;; Format generation date
                   generation-date (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
-                                       zone (java.time.ZoneId/systemDefault)]
-                                   (.format (.atZone (:generation/created-at generation) zone) formatter))]
+                                        zone (java.time.ZoneId/systemDefault)]
+                                    (.format (.atZone (:generation/created-at generation) zone) formatter))]
 
               {:status 200
                :headers {"content-type" "text/html"}
@@ -1088,32 +1222,37 @@
 
             ;; Error: Return error toast
             (let [error-message (case (:code result)
-                                 "NOT_FOUND" "Generation not found"
-                                 "FORBIDDEN" "Access denied"
-                                 "Failed to accept summaries")]
+                                  "NOT_FOUND" "Generation not found"
+                                  "FORBIDDEN" "Access denied"
+                                  "Failed to accept summaries")]
               {:status (case (:code result)
-                        "NOT_FOUND" 404
-                        "FORBIDDEN" 403
-                        500)
+                         "NOT_FOUND" 404
+                         "FORBIDDEN" 403
+                         500)
                :headers {"content-type" "text/html"}
                :body (rum/render-static-markup
                       (ui-helpers/error-toast-oob error-message))})))))))
 
 (def module
-  {:routes ["/summaries" {:middleware [mid/wrap-signed-in]}
-            ["" {:get summaries-list-page
-                 :post create-summary-handler}]
-            ["/new" {:get new-summary-page}]
-            ["/:id" {:delete delete-summary-handler}]]
-   :api-routes [["/api/summaries" {:post create-manual-summary-api-handler
-                                    :middleware [mid/wrap-signed-in]}]
-                ["/api/summaries/import" {:post import-csv-htmx-handler}]
-                ["/api/summaries/:id"
-                 ["" {:patch update-summary-field-handler}]
-                 ["/content" {:patch update-summary-content-handler}]
-                 ["/accept" {:post accept-summary-handler}]
-                 ["/field/:field-name/edit" {:get get-field-edit-mode-handler}]
-                 ["/edit" {:get get-content-edit-mode-handler}]
-                 ["/cancel-edit" {:get cancel-content-edit-handler}]
-                 ["/toggle-content" {:get toggle-content-handler}]]
-                ["/api/generations/:id/accept-summaries" {:post bulk-accept-generation-handler}]]})
+  {:routes [["/summaries" {:middleware [mid/wrap-signed-in]}
+             ["" {:get summaries-list-page
+                  :post create-summary-handler}]
+             ["/:id" {:delete delete-summary-handler}]]
+            ["/summaries-new" {:middleware [mid/wrap-signed-in]
+                               :get new-summary-page}]]
+   :api-routes [["/api/summaries" {:middleware [mid/wrap-signed-in]}
+                 ["" {:post create-manual-summary-api-handler}]
+                 ["/:id"
+                  ["" {:patch update-summary-field-handler
+                       :delete delete-summary-handler}]
+                  ["/content" {:patch update-summary-content-handler}]
+                  ["/accept" {:post accept-summary-handler}]
+                  ["/field/:field-name/edit" {:get get-field-edit-mode-handler}]
+                  ["/field/:field-name/display" {:get cancel-field-edit-handler}]
+                  ["/edit" {:get get-content-edit-mode-handler}]
+                  ["/cancel-edit" {:get cancel-content-edit-handler}]
+                  ["/toggle-content" {:get toggle-content-handler}]]]
+                ["/api/summaries-import" {:post import-csv-htmx-handler
+                                          :middleware [mid/wrap-signed-in]}]
+                ["/api/generations/:id/accept-summaries" {:post bulk-accept-generation-handler
+                                                          :middleware [mid/wrap-signed-in]}]]})

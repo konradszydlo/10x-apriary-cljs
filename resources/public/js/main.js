@@ -1,7 +1,7 @@
 // When plain htmx isn't quite enough, you can stick some custom JS here.
 
 /**
- * Update character counter for content textarea
+ * Update character counter for content textarea in edit mode
  *
  * @param {HTMLTextAreaElement} textarea - The textarea element
  */
@@ -37,3 +37,46 @@ function updateCharCount(textarea) {
     saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
   }
 }
+
+/**
+ * Initialize character counter for new summary form
+ * Attaches event listener to content textarea on page load
+ */
+document.addEventListener('DOMContentLoaded', function() {
+  const contentTextarea = document.getElementById('content');
+  const charCounter = document.getElementById('char-counter');
+  const submitBtn = document.getElementById('submit-btn');
+
+  if (contentTextarea && charCounter && submitBtn) {
+    const minLength = 50;
+    const maxLength = 50000;
+
+    function updateNewSummaryCharCount() {
+      const trimmed = contentTextarea.value.trim();
+      const length = trimmed.length;
+
+      if (length < minLength) {
+        charCounter.className = 'mt-1 text-sm text-red-600';
+        charCounter.textContent = `Too short (${length} chars, minimum ${minLength})`;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else if (length > maxLength) {
+        charCounter.className = 'mt-1 text-sm text-red-600';
+        charCounter.textContent = `Too long (${length} chars, maximum ${maxLength})`;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        charCounter.className = 'mt-1 text-sm text-gray-600';
+        charCounter.textContent = `${length} / ${maxLength} characters`;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    // Initialize on page load
+    updateNewSummaryCharCount();
+
+    // Update on input
+    contentTextarea.addEventListener('input', updateNewSummaryCharCount);
+  }
+});

@@ -270,7 +270,7 @@
               {:status 500 :body result})))))))
 
 (defn import-csv-handler
-  "POST /api/summaries/import - Import CSV data and generate AI summaries via OpenRouter"
+  "POST /api/summaries-import - Import CSV data and generate AI summaries via OpenRouter (unused - see summaries_view.clj)"
   [{:keys [session biff.xtdb/node body] :as _ctx}]
   ;; Guard clause: authentication
   (if-not (some? (:uid session))
@@ -382,13 +382,7 @@
 ;; Route Definitions
 ;; =============================================================================
 
+;; Note: API routes are now defined in summaries_view.clj as HTMX handlers
+;; This module contains the service logic but routes are handled by the view layer
 (def module
-  {:api-routes ["/api/summaries"
-                {:get list-summaries-handler
-                 :post create-manual-summary-handler}
-                ["/:id"
-                 {:get get-single-summary-handler
-                  :patch update-summary-handler
-                  :delete delete-summary-handler}
-                 ["/accept" {:post accept-summary-handler}]]
-                ["/import" {:post import-csv-handler}]]})
+  {})

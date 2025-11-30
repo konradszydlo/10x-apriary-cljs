@@ -53,7 +53,7 @@
    [:generation-id :uuid]])
 
 (def csv-import-schema
-  "Schema for POST /api/summaries/import request body.
+  "Schema for POST /api/summaries-import request body.
 
    CSV format requirements:
    - UTF-8 encoding
@@ -100,7 +100,7 @@
    [:reason :string]])
 
 (def csv-import-response-schema
-  "Schema for POST /api/summaries/import response.
+  "Schema for POST /api/summaries-import response.
 
    Status values:
    - 'processing': Async operation initiated (202 response)

@@ -190,38 +190,38 @@
                      :message "CSV must have 'observation' column"}])
 
           (let [column-indices {:observation obs-idx
-                              :hive-number hive-idx
-                              :observation-date date-idx
-                              :special-feature feature-idx}
+                                :hive-number hive-idx
+                                :observation-date date-idx
+                                :special-feature feature-idx}
 
               ;; Validate all rows
-              results (map-indexed
-                       (fn [idx row]
-                         (validate-csv-row row (+ idx 2) column-indices)) ; +2 for header row and 1-indexing
-                       rows)
+                results (map-indexed
+                         (fn [idx row]
+                           (validate-csv-row row (+ idx 2) column-indices)) ; +2 for header row and 1-indexing
+                         rows)
 
               ;; Separate valid and rejected rows
-              valid-rows (keep (fn [result]
-                                 (when (= (first result) :ok)
-                                   (second result)))
-                               results)
+                valid-rows (keep (fn [result]
+                                   (when (= (first result) :ok)
+                                     (second result)))
+                                 results)
 
-              rejected-rows (keep (fn [result]
-                                    (when (= (first result) :error)
-                                      (second result)))
-                                  results)
+                rejected-rows (keep (fn [result]
+                                      (when (= (first result) :error)
+                                        (second result)))
+                                    results)
 
-              rows-submitted (count rows)
-              rows-valid (count valid-rows)
-              rows-rejected (count rejected-rows)]
+                rows-submitted (count rows)
+                rows-valid (count valid-rows)
+                rows-rejected (count rejected-rows)]
 
-          (log/info "Processed CSV import"
-                    :rows-submitted rows-submitted
-                    :rows-valid rows-valid
-                    :rows-rejected rows-rejected)
+            (log/info "Processed CSV import"
+                      :rows-submitted rows-submitted
+                      :rows-valid rows-valid
+                      :rows-rejected rows-rejected)
 
-          [:ok {:valid-rows valid-rows
-                :rejected-rows rejected-rows
-                :rows-submitted rows-submitted
-                :rows-valid rows-valid
-                :rows-rejected rows-rejected}]))))))
+            [:ok {:valid-rows valid-rows
+                  :rejected-rows rejected-rows
+                  :rows-submitted rows-submitted
+                  :rows-valid rows-valid
+                  :rows-rejected rows-rejected}]))))))

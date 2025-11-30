@@ -1,4 +1,5 @@
 (ns com.apriary.util
+  (:refer-clojure :exclude [parse-uuid])
   (:require [clojure.string :as str]))
 
 ;; UUID Validation and Parsing
@@ -132,13 +133,13 @@
 
 (defn build-error-response
   "Build a standard error response body object (for use inside {:body ...}).
-   
+
    Params:
-   - status: HTTP status code
+   - _status: HTTP status code (unused, kept for API compatibility)
    - code: Error code constant
    - message: Human-readable error message
    - details: Optional map of additional error details"
-  [status code message & {:keys [details]}]
+  [_status code message & {:keys [details]}]
   {:error message
    :code code
    :details (or details {})
