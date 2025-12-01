@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Caddy reverse proxy for HTTPS support
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: apiary-caddy
+    ports:
+      - "80:80"      # HTTP (will redirect to HTTPS)
+      - "443:443"    # HTTPS
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      # Mount static files from app container for direct serving
+      # This follows Biff best practices (like server-setup.sh nginx config)
+      - static-files:/var/www/public:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: apiary-app:latest
+    container_name: apiary-app
+    # Don't expose ports directly - Caddy will handle all traffic
+    expose:
+      - "8080"
+    env_file:
+      - config.env
+    environment:
+      - BIFF_PROFILE=prod
+      - HOST=0.0.0.0
+      - PORT=8080
+    volumes:
+      # Persist XTDB data
+      - xtdb-data:/app/storage
+      # Share static files with Caddy for direct serving
+      # Follows the same pattern as server-setup.sh: target/resources/public takes priority
+      - static-files:/static:rw
+    restart: unless-stopped
+    # Copy static files to shared volume on startup
+    command: >
+      sh -c "
+        mkdir -p /static &&
+        cp -r /app/target/resources/public/* /static/ 2>/dev/null || true &&
+        cp -rn /app/resources/public/* /static/ 2>/dev/null || true &&
+        /opt/java/openjdk/bin/java -XX:-OmitStackTraceInFastThrow -XX:+CrashOnOutOfMemoryError -jar app.jar
+      "
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  xtdb-data:
+    driver: local
+  static-files:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
+    driver: local

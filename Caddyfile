@@ -1,0 +1,83 @@
+# Caddy configuration for local HTTPS development
+#
+# This configuration follows Biff framework best practices:
+# - Serves static files directly from Caddy (performance optimization)
+# - Proxies dynamic requests to the app container
+# - Auto-redirects HTTP to HTTPS
+# - Generates self-signed certificates automatically (browser will show warning)
+# - Enables compression for text-based assets
+# - Sets appropriate caching headers
+
+localhost {
+    # Set root directory for static files
+    root * /var/www/public
+
+    # Enable file compression (gzip, zstd, brotli)
+    encode gzip zstd
+
+    # Try to serve static files first, then proxy to app
+    # This mirrors the nginx config from server-setup.sh
+    @notStatic {
+        not file
+    }
+
+    # Serve static files with caching headers
+    @static {
+        file
+        path *.css *.js *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    # Handle static files
+    handle @static {
+        file_server
+    }
+
+    # Proxy dynamic requests to app
+    handle @notStatic {
+        reverse_proxy app:8080 {
+            # Pass the original host header
+            header_up Host {host}
+            # Pass the real client IP
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Enable detailed logging (optional, useful for debugging)
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+}
+
+# For production deployment with a real domain, replace the above with:
+# yourdomain.com {
+#     root * /var/www/public
+#     encode gzip zstd
+#
+#     @notStatic {
+#         not file
+#     }
+#
+#     @static {
+#         file
+#         path *.css *.js *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
+#     }
+#     header @static Cache-Control "public, max-age=31536000, immutable"
+#
+#     handle @static {
+#         file_server
+#     }
+#
+#     handle @notStatic {
+#         reverse_proxy app:8080 {
+#             header_up Host {host}
+#             header_up X-Real-IP {remote_host}
+#             header_up X-Forwarded-For {remote_host}
+#             header_up X-Forwarded-Proto {scheme}
+#         }
+#     }
+# }

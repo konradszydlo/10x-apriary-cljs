@@ -1,5 +1,6 @@
 (ns com.apriary.email
-  (:require [clojure.tools.logging :as log]))
+  (:require [clojure.tools.logging :as log]
+            [com.biffweb :as biff]))
 
 (defn password-reset-email-html
   "HTML email template for password reset"
@@ -28,7 +29,7 @@
 
 (defn send-password-reset-email
   "Send password reset email (MVP: logs to console instead of actually sending)"
-  [ctx to-email reset-link]
+  [_ctx to-email reset-link]
   ;; MVP: Print email to console instead of sending
   (println "\n========================================")
   (println "PASSWORD RESET EMAIL")
@@ -44,7 +45,7 @@
 (comment
   (defn send-password-reset-email-real
     "Send password reset email via Postmark"
-    [{:keys [biff.postmark/api-key com.apriary/from-email] :as ctx}
+    [{:keys [biff.postmark/api-key com.apriary/from-email]}
      to-email
      reset-link]
     (biff/send-email

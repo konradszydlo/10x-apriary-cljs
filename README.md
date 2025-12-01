@@ -7,6 +7,14 @@ The project is created as a part of an AI course [10xDevs](https://www.10xdevs.p
 
 ## Getting Started
 
+### Prerequisites
+
+- `config.env`
+You can copy `config.env.example` to `config.env`.
+
+
+### Development
+
 Run `clj -M:dev dev` to get started. See `clj -M:dev --help` for other commands.
 
 ```shell
@@ -16,3 +24,19 @@ cljfmt fix
 
 clj-kondo --lint src test
 ```
+
+### Docker
+
+See DOCKER.md for detailed guide on running the application with Docker.
+
+#### Summary
+
+```shell
+docker build -t apiary-app .
+
+docker compose up
+```
+
+Navigate to [localhost](https://localhost/).
+
+You might see a warning about a self-signed certificate. Ignore it.

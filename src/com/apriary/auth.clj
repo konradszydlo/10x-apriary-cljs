@@ -1,8 +1,7 @@
 (ns com.apriary.auth
   (:require [com.biffweb :as biff]
             [clojure.string :as str]
-            [com.apriary.email :as email]
-            [xtdb.api :as xt])
+            [com.apriary.email :as email])
   (:import [org.mindrot.jbcrypt BCrypt]))
 
 (defn hash-password [password]
@@ -93,7 +92,7 @@
          :headers {"location" "/app"}
          :session {:uid user-id}}))))
 
-(defn signin [{:keys [params biff/db] :as ctx}]
+(defn signin [{:keys [params biff/db]}]
   (let [email (str/trim (:email params))
         password (:password params)
         user (biff/lookup db :user/email email)]
