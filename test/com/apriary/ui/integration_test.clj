@@ -22,7 +22,8 @@
                        :auto-dismiss true
                        :duration-ms 3000})]
       (is (vector? toast-html))
-      (is (= :div (first toast-html)))
+      ;; Check that the tag is :div (extract tag name before classes/id)
+      (is (str/starts-with? (name (first toast-html)) "div"))
       ;; Check for success styling
       (is (str/includes? (str toast-html) "bg-green-100"))
       ;; Check for message content
@@ -52,7 +53,8 @@
                     {:type :success
                      :message "Test"})]
       (is (vector? oob-html))
-      (is (= :div (first oob-html)))
+      ;; Check that the tag is :div (extract tag name before classes/id)
+      (is (str/starts-with? (name (first oob-html)) "div"))
       ;; Check for OOB swap directive
       (is (str/includes? (str oob-html) "afterbegin:#toast-container")))))
 
@@ -60,7 +62,8 @@
   (testing "Container has proper ARIA attributes"
     (let [container (toast/toast-container)]
       (is (vector? container))
-      (is (= :div (first container)))
+      ;; Check that the tag is :div (extract tag name before classes/id)
+      (is (str/starts-with? (name (first container)) "div"))
       ;; Check attributes
       (let [attrs (second container)]
         (is (= "polite" (:aria-live attrs)))
@@ -114,7 +117,8 @@
     (let [ctx {:session {:uid "user-123"}}
           html (header/application-header ctx)]
       (is (vector? html))
-      (is (= :header (first html)))
+      ;; Check that the tag is :header (extract tag name before classes)
+      (is (str/starts-with? (name (first html)) "header"))
       ;; Check for app name
       (is (str/includes? (str html) "Apriary Summary"))
       ;; Check for New Summary button
