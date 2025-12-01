@@ -235,9 +235,9 @@
         (str summaries-count (if (= summaries-count 1) " summary" " summaries"))]]
 
       ;; Right side: Bulk accept button
-      [bulk-accept-button
+      (bulk-accept-button
        {:generation-id generation-id
-        :all-accepted? all-accepted?}]]]))
+        :all-accepted? all-accepted?})]]))
 
 ;; =============================================================================
 ;; Component: Generation Group
@@ -273,20 +273,21 @@
      ;; Summary cards grid
      [:div.summary-cards-grid.grid.gap-6
       {:class "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}
-      (for [summary summaries]
-        (let [summary-dto {:id (str (:summary/id summary))
-                           :source (name (:summary/source summary))
-                           :hive-number (:summary/hive-number summary)
-                           :observation-date (:summary/observation-date summary)
-                           :special-feature (:summary/special-feature summary)
-                           :content (:summary/content summary)
-                           :generation-id (str (:summary/generation-id summary))
-                           :accepted-at (:summary/accepted-at summary)}]
-          ^{:key (:id summary-dto)}
-          (summary-card/summary-card
-           {:summary summary-dto
-            :generation-date generation-date
-            :model-name (:generation/model generation)})))]]))
+      (doall
+       (for [summary summaries]
+         (let [summary-dto {:id (str (:summary/id summary))
+                            :source (name (:summary/source summary))
+                            :hive-number (:summary/hive-number summary)
+                            :observation-date (:summary/observation-date summary)
+                            :special-feature (:summary/special-feature summary)
+                            :content (:summary/content summary)
+                            :generation-id (str (:summary/generation-id summary))
+                            :accepted-at (:summary/accepted-at summary)}]
+           ^{:key (:id summary-dto)}
+           (summary-card/summary-card
+            {:summary summary-dto
+             :generation-date generation-date
+             :model-name (:generation/model generation)}))))]]))
 
 ;; =============================================================================
 ;; Component: Manual Summaries Section
@@ -312,18 +313,19 @@
      ;; Summary cards grid
      [:div.summary-cards-grid.grid.gap-6
       {:class "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}
-      (for [summary summaries]
-        (let [summary-dto {:id (str (:summary/id summary))
-                           :source (name (:summary/source summary))
-                           :hive-number (:summary/hive-number summary)
-                           :observation-date (:summary/observation-date summary)
-                           :special-feature (:summary/special-feature summary)
-                           :content (:summary/content summary)
-                           :generation-id nil
-                           :accepted-at nil}]
-          ^{:key (:id summary-dto)}
-          (summary-card/summary-card
-           {:summary summary-dto})))]]))
+      (doall
+       (for [summary summaries]
+         (let [summary-dto {:id (str (:summary/id summary))
+                            :source (name (:summary/source summary))
+                            :hive-number (:summary/hive-number summary)
+                            :observation-date (:summary/observation-date summary)
+                            :special-feature (:summary/special-feature summary)
+                            :content (:summary/content summary)
+                            :generation-id nil
+                            :accepted-at nil}]
+           ^{:key (:id summary-dto)}
+           (summary-card/summary-card
+            {:summary summary-dto}))))]]))
 
 ;; =============================================================================
 ;; Component: Summaries List Section (Main Container)
@@ -355,7 +357,7 @@
           generations-map (into {} (map (fn [gen] [(:generation/id gen) gen]) generations))
 
           ;; Group summaries by generation
-          {:keys [_generation-groups manual-summaries]}
+          {:keys [generation-groups manual-summaries]}
           (group-summaries-by-generation summaries generations-map)
 
           total-count (count summaries)]
@@ -369,9 +371,10 @@
           total-count]]]
 
        ;; Generation groups (AI-imported summaries)
-       #_(for [group generation-groups]
-           ^{:key (str "gen-" (get-in group [:generation :generation/id]))}
-           (generation-group group))
+       (doall
+        (for [group generation-groups]
+          ^{:key (str "gen-" (get-in group [:generation :generation/id]))}
+          (generation-group group)))
 
        ;; Manual summaries section
        (manual-summaries-section manual-summaries)])))

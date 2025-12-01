@@ -26,63 +26,6 @@
             [rum.core :as rum]
             [xtdb.api :as xt]))
 
-(defn summary-card
-  "Renders a single summary card.
-
-  Args:
-    summary - Summary entity map
-
-  Returns:
-    Hiccup vector for summary card"
-  [summary]
-  (let [summary-id (str (:summary/id summary))
-        source (:summary/source summary)
-        source-label (case source
-                       :ai-full "AI Generated"
-                       :ai-partial "AI Assisted"
-                       :manual "Manual"
-                       "Unknown")]
-    [:div.bg-white.shadow.rounded-lg.p-6.mb-4
-     {:id (str "summary-" summary-id)}
-
-     ;; Header
-     [:div.flex.items-start.justify-between
-      [:div.flex-1
-       [:h3.text-lg.font-semibold.text-gray-900
-        "Hive #" (:summary/hive-number summary)]
-       [:p.text-sm.text-gray-500
-        "Date: " (str (:summary/observation-date summary))]
-       [:span.inline-flex.items-center.px-2.py-1.rounded.text-xs.font-medium.mt-2
-        {:class (case source
-                  :ai-full "bg-green-100 text-green-800"
-                  :ai-partial "bg-blue-100 text-blue-800"
-                  :manual "bg-gray-100 text-gray-800"
-                  "bg-gray-100 text-gray-800")}
-        source-label]]
-
-      ;; Actions
-      [:div.flex.gap-2
-       [:button.text-blue-600.hover:text-blue-800.text-sm
-        {:hx-get (str "/summaries/" summary-id "/edit")
-         :hx-target (str "#summary-" summary-id)
-         :hx-swap "outerHTML"}
-        "Edit"]
-       [:button.text-red-600.hover:text-red-800.text-sm
-        {:hx-delete (str "/summaries/" summary-id)
-         :hx-confirm "Are you sure you want to delete this summary?"
-         :hx-target (str "#summary-" summary-id)
-         :hx-swap "outerHTML"}
-        "Delete"]]]
-
-     ;; Content
-     [:div.mt-4
-      (when (:summary/special-feature summary)
-        [:p.text-sm.text-gray-600.mb-2
-         [:span.font-medium "Special Feature: "]
-         (:summary/special-feature summary)])
-      [:p.text-gray-700.whitespace-pre-wrap
-       (:summary/content summary)]]]))
-
 (defn summaries-list-page
   "GET /summaries - Display list of all summaries.
 
@@ -607,11 +550,22 @@
                                     :summaries-created (count summary-entities))
 
                           ;; Step 5: Build HTML response with OOB swaps
-                          (let [success-message (str (count summary-entities)
+                          (let [;; Format generation date
+                                generation-date (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
+                                                      zone (java.time.ZoneId/systemDefault)]
+                                                  (.format (.atZone now zone) formatter))
+                                success-message (str (count summary-entities)
                                                      " summaries generated successfully"
                                                      (when (pos? rows-rejected)
                                                        (str ". " rows-rejected " rows rejected.")))
-                                main-content (map summary-card summary-entities)
+                                ;; Convert entities to DTOs for rendering
+                                summary-dtos (mapv summary-dto/entity->dto summary-entities)
+                                main-content (map (fn [dto]
+                                                    (summary-card/summary-card
+                                                     {:summary dto
+                                                      :generation-date generation-date
+                                                      :model-name model}))
+                                                  summary-dtos)
                                 toast (ui-helpers/success-toast-oob success-message)
                                 rejected-rows-html (when (seq rejected-rows)
                                                      (csv-import/rejected-rows-oob-html rejected-rows))
