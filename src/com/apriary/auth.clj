@@ -12,7 +12,7 @@
 
 (defn valid-email? [email]
   (and (string? email)
-       (re-matches #".+@.+\..+" email)))
+       (some? (re-matches #"[^\s@]+@[^\s@]+\.[^\s@]+" email))))
 
 (defn valid-password? [password]
   (and (string? password)
