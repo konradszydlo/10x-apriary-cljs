@@ -53,12 +53,11 @@
     ctx - Biff context map
     opts - Options map with keys:
       :page-title - Page title (defaults to app name)
-      :recaptcha - Whether to include reCAPTCHA (default false)
     body - Page content (hiccup vectors)
 
   Returns:
     Complete HTML document as hiccup vector"
-  [{:keys [::recaptcha] :as ctx} opts & body]
+  [ctx opts & body]
   (apply
    biff/base-html
    (-> ctx
@@ -73,10 +72,7 @@
                                      [:script {:src "https://unpkg.com/htmx.org@2.0.7"}]
                                      [:script {:src "https://unpkg.com/htmx-ext-ws@2.0.2/ws.js"}]
                                      [:script {:src "https://unpkg.com/htmx.org@2.0.7/dist/ext/json-enc.js"}]
-                                     [:script {:src "https://unpkg.com/hyperscript.org@0.9.14"}]
-                                     (when recaptcha
-                                       [:script {:src "https://www.google.com/recaptcha/api.js"
-                                                 :async "async" :defer "defer"}])]
+                                     [:script {:src "https://unpkg.com/hyperscript.org@0.9.14"}]]
                                     head))))
    body))
 

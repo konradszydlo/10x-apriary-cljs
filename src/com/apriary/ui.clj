@@ -2,6 +2,7 @@
   (:require [cheshire.core :as cheshire]
             [clojure.java.io :as io]
             [com.apriary.settings :as settings]
+            [com.apriary.ui.header :refer [unauthenticated-header]]
             [com.biffweb :as biff]
             [ring.middleware.anti-forgery :as csrf]
             [ring.util.response :as ring-response]
@@ -15,7 +16,7 @@
     (str path "?t=" last-modified)
     path))
 
-(defn base [{:keys [::recaptcha] :as ctx} & body]
+(defn base [ctx & body]
   (apply
    biff/base-html
    (-> ctx
@@ -29,24 +30,27 @@
                                      [:script {:src (static-path "/js/main.js")}]
                                      [:script {:src "https://unpkg.com/htmx.org@2.0.7"}]
                                      [:script {:src "https://unpkg.com/htmx-ext-ws@2.0.2/ws.js"}]
-                                     [:script {:src "https://unpkg.com/hyperscript.org@0.9.14"}]
-                                     (when recaptcha
-                                       [:script {:src "https://www.google.com/recaptcha/api.js"
-                                                 :async "async" :defer "defer"}])]
+                                     [:script {:src "https://unpkg.com/hyperscript.org@0.9.14"}]]
                                     head))))
    body))
 
 (defn page [ctx & body]
   (base
    ctx
-   [:.flex-grow]
-   [:.p-3.mx-auto.max-w-screen-sm.w-full
+   [:body.bg-gray-50.min-h-screen
     (when (bound? #'csrf/*anti-forgery-token*)
       {:hx-headers (cheshire/generate-string
                     {:x-csrf-token csrf/*anti-forgery-token*})})
-    body]
-   [:.flex-grow]
-   [:.flex-grow]))
+
+    ;; Unauthenticated Header
+    (unauthenticated-header ctx)
+
+    ;; Content
+    [:.flex-grow]
+    [:.p-3.mx-auto.max-w-screen-sm.w-full
+     body]
+    [:.flex-grow]
+    [:.flex-grow]]))
 
 (defn on-error [{:keys [status ex session] :as ctx}]
   (let [error-data (when ex

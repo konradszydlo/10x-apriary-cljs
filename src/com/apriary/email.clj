@@ -1,90 +1,56 @@
 (ns com.apriary.email
-  (:require [clj-http.client :as http]
-            [com.apriary.settings :as settings]
-            [clojure.tools.logging :as log]
-            [rum.core :as rum]))
+  (:require [clojure.tools.logging :as log]))
 
-(defn signin-link [{:keys [to url user-exists]}]
-  (let [[subject action] (if user-exists
-                           [(str "Sign in to " settings/app-name) "sign in"]
-                           [(str "Sign up for " settings/app-name) "sign up"])]
-    {:to [{:email to}]
-     :subject subject
-     :html (rum/render-static-markup
-            [:html
-             [:body
-              [:p "We received a request to " action " to " settings/app-name
-               " using this email address. Click this link to " action ":"]
-              [:p [:a {:href url :target "_blank"} "Click here to " action "."]]
-              [:p "This link will expire in one hour. "
-               "If you did not request this link, you can ignore this email."]]])
-     :text (str "We received a request to " action " to " settings/app-name
-                " using this email address. Click this link to " action ":\n"
-                "\n"
-                url "\n"
-                "\n"
-                "This link will expire in one hour. If you did not request this link, "
-                "you can ignore this email.")}))
+(defn password-reset-email-html
+  "HTML email template for password reset"
+  [reset-link]
+  (str
+   "<h2>Reset your Apriary Summary password</h2>"
+   "<p>You requested to reset your password. Click the link below to set a new password:</p>"
+   "<p><a href=\"" reset-link "\" style=\"display: inline-block; padding: 12px 24px; "
+   "background-color: #2563eb; color: white; text-decoration: none; "
+   "border-radius: 6px;\">Reset Password</a></p>"
+   "<p>This link will expire in 1 hour.</p>"
+   "<p>If you didn't request this, you can safely ignore this email.</p>"
+   "<p>—<br>The Apriary Summary Team</p>"))
 
-(defn signin-code [{:keys [to code user-exists]}]
-  (let [[subject action] (if user-exists
-                           [(str "Sign in to " settings/app-name) "sign in"]
-                           [(str "Sign up for " settings/app-name) "sign up"])]
-    {:to [{:email to}]
-     :subject subject
-     :html (rum/render-static-markup
-            [:html
-             [:body
-              [:p "We received a request to " action " to " settings/app-name
-               " using this email address. Enter the following code to " action ":"]
-              [:p {:style {:font-size "2rem"}} code]
-              [:p
-               "This code will expire in three minutes. "
-               "If you did not request this code, you can ignore this email."]]])
-     :text (str "We received a request to " action " to " settings/app-name
-                " using this email address. Enter the following code to " action ":\n"
-                "\n"
-                code "\n"
-                "\n"
-                "This code will expire in three minutes. If you did not request this code, "
-                "you can ignore this email.")}))
+(defn password-reset-email-text
+  "Plain text email template for password reset"
+  [reset-link]
+  (str
+   "Reset your Apriary Summary password\n\n"
+   "You requested to reset your password. Click the link below to set a new password:\n\n"
+   reset-link "\n\n"
+   "This link will expire in 1 hour.\n\n"
+   "If you didn't request this, you can safely ignore this email.\n\n"
+   "—\n"
+   "The Apriary Summary Team"))
 
-(defn template [k opts]
-  ((case k
-     :signin-link signin-link
-     :signin-code signin-code)
-   opts))
+(defn send-password-reset-email
+  "Send password reset email (MVP: logs to console instead of actually sending)"
+  [ctx to-email reset-link]
+  ;; MVP: Print email to console instead of sending
+  (println "\n========================================")
+  (println "PASSWORD RESET EMAIL")
+  (println "========================================")
+  (println "To:" to-email)
+  (println "Subject: Reset your Apriary Summary password")
+  (println "----------------------------------------")
+  (println (password-reset-email-text reset-link))
+  (println "========================================\n")
+  (log/info "Password reset email (console output)" :to to-email))
 
-(defn send-mailersend [{:keys [biff/secret mailersend/from mailersend/reply-to]} form-params]
-  (let [result (http/post "https://api.mailersend.com/v1/email"
-                          {:oauth-token (secret :mailersend/api-key)
-                           :content-type :json
-                           :throw-exceptions false
-                           :as :json
-                           :form-params (merge {:from {:email from :name settings/app-name}
-                                                :reply_to {:email reply-to :name settings/app-name}}
-                                               form-params)})
-        success (< (:status result) 400)]
-    (when-not success
-      (log/error (:body result)))
-    success))
-
-(defn send-console [_ctx form-params]
-  (println "TO:" (:to form-params))
-  (println "SUBJECT:" (:subject form-params))
-  (println)
-  (println (:text form-params))
-  (println)
-  (println "To send emails instead of printing them to the console, add your"
-           "API keys for MailerSend and Recaptcha to config.env.")
-  true)
-
-(defn send-email [{:keys [biff/secret recaptcha/site-key] :as ctx} opts]
-  (let [form-params (if-some [template-key (:template opts)]
-                      (template template-key opts)
-                      opts)]
-    (if (every? some? [(secret :mailersend/api-key)
-                       (secret :recaptcha/secret-key)
-                       site-key])
-      (send-mailersend ctx form-params)
-      (send-console ctx form-params))))
+;; Future implementation for real email sending:
+(comment
+  (defn send-password-reset-email-real
+    "Send password reset email via Postmark"
+    [{:keys [biff.postmark/api-key com.apriary/from-email] :as ctx}
+     to-email
+     reset-link]
+    (biff/send-email
+     {:to to-email
+      :from from-email
+      :subject "Reset your Apriary Summary password"
+      :html (password-reset-email-html reset-link)
+      :text (password-reset-email-text reset-link)
+      :postmark-api-key api-key})))

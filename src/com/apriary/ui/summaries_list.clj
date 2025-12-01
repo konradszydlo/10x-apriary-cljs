@@ -134,7 +134,7 @@
   "Renders empty state when user has no summaries.
 
   Displays a friendly message with icon and call-to-action encouraging
-  users to create their first summary or import CSV data.
+  users to create their first summary.
 
   Returns:
     Hiccup div element with empty state content"
@@ -149,14 +149,11 @@
 
    ;; Description
    [:p.text-gray-600.mt-2
-    "Get started by importing CSV data or creating your first summary manually."]
+    "Get started by creating your first summary."]
 
    ;; Call-to-action
-   [:div.mt-6.flex.gap-3.justify-center
+   [:div.mt-6
     [:a.inline-flex.items-center.px-4.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700.transition-colors
-     {:href "/csv-import"}
-     "Import CSV"]
-    [:a.inline-flex.items-center.px-4.py-2.border.border-gray-300.text-sm.font-medium.rounded-md.text-gray-700.bg-white.hover:bg-gray-50.transition-colors
      {:href "/summaries-new"}
      "+ New Summary"]]])
 

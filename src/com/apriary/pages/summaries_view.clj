@@ -62,13 +62,9 @@
        [:div.py-6
         [:div.flex.items-center.justify-between
          [:h1.text-2xl.font-bold.text-gray-900 "Summaries"]
-         [:div.flex.gap-2
-          [:a.inline-flex.items-center.px-3.py-2.border.border-gray-300.text-sm.font-medium.rounded-md.text-gray-700.bg-white.hover:bg-gray-50
-           {:href "/csv-import"}
-           "Import CSV"]
-          [:a.inline-flex.items-center.px-3.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700
-           {:href "/summaries-new"}
-           "+ New Summary"]]]
+         [:a.inline-flex.items-center.px-3.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700
+          {:href "/summaries-new"}
+          "+ New Summary"]]
 
          ; CSV Import Section
         (csv-import/csv-import-section)
@@ -125,13 +121,9 @@
          [:div.py-6
           [:div.flex.items-center.justify-between
            [:h1.text-2xl.font-bold.text-gray-900 "Summaries"]
-           [:div.flex.gap-2
-            [:a.inline-flex.items-center.px-3.py-2.border.border-gray-300.text-sm.font-medium.rounded-md.text-gray-700.bg-white.hover:bg-gray-50
-             {:href "/csv-import"}
-             "Import CSV"]
-            [:a.inline-flex.items-center.px-3.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700
-             {:href "/summaries-new"}
-             "+ New Summary"]]]
+           [:a.inline-flex.items-center.px-3.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700
+            {:href "/summaries-new"}
+            "+ New Summary"]]
 
         ;; CSV Import Section
           (csv-import/csv-import-section)

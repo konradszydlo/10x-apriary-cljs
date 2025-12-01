@@ -22,13 +22,6 @@
  :biff/jwt-secret               #biff/secret JWT_SECRET
  :biff.refresh/enabled          #profile {:dev true :default false}
 
- :mailersend/api-key  #biff/secret MAILERSEND_API_KEY
- :mailersend/from     #biff/env MAILERSEND_FROM
- :mailersend/reply-to #biff/env MAILERSEND_REPLY_TO
-
- :recaptcha/secret-key #biff/secret RECAPTCHA_SECRET_KEY
- :recaptcha/site-key   #biff/env RECAPTCHA_SITE_KEY
-
  :biff.nrepl/port #or [#biff/env NREPL_PORT "7888"]
  :biff.nrepl/args ["--port" #ref [:biff.nrepl/port]
                    "--middleware" "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"]

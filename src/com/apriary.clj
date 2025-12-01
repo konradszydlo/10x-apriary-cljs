@@ -1,6 +1,6 @@
 (ns com.apriary
   (:require [com.biffweb :as biff]
-            [com.apriary.email :as email]
+            [com.apriary.auth :as auth]
             [com.apriary.pages.app :as app]
             [com.apriary.pages.home :as home]
             [com.apriary.pages.generations :as generations]
@@ -18,7 +18,7 @@
 
 (def modules
   [app/module
-   (biff/authentication-module {})
+   auth/module
    home/module
    generations/module
    summaries-view/module
@@ -52,7 +52,6 @@
 
 (def initial-system
   {:biff/modules #'modules
-   :biff/send-email #'email/send-email
    :biff/handler #'handler
    :biff/malli-opts #'malli-opts
    :biff.beholder/on-save #'on-save

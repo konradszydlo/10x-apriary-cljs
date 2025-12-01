@@ -4,7 +4,9 @@
   {:user/id :uuid
    :user [:map {:closed true}
           [:xt/id                     :user/id]
+          [:user/id                   :user/id]
           [:user/email                :string]
+          [:user/password-hash        :string]
           [:user/joined-at            inst?]]
 
    :generation/id :uuid
@@ -32,7 +34,17 @@
              [:summary/hive-number {:optional true} [:maybe :string]]
              [:summary/observation-date {:optional true} [:maybe :string]]
              [:summary/special-feature {:optional true} [:maybe :string]]
-             [:summary/content           :string]]})
+             [:summary/content           :string]]
+
+   :password-reset-token/id :uuid
+   :password-reset-token [:map {:closed true}
+                          [:xt/id                                :uuid]
+                          [:password-reset-token/id              :uuid]
+                          [:password-reset-token/user-id         :uuid]
+                          [:password-reset-token/token           :string]
+                          [:password-reset-token/expires-at      inst?]
+                          [:password-reset-token/created-at      inst?]
+                          [:password-reset-token/used-at {:optional true} [:maybe inst?]]]})
 
 (def module
   {:schema schema})

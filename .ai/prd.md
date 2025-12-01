@@ -127,6 +127,18 @@ Głównym problemem, który rozwiązuje Apriary Summary, jest czasochłonność 
   - Po wypełnieniu i zapisaniu formularza, nowe podsumowanie pojawia się na liście.
   - W tym przypadku podsumowanie nie jest generowane przez AI.
 
+- ID: US-010: Bezpieczny dostęp i uwierzytelnianie
+- Tytuł: Bezpieczny dostęp
+- Opis: Jako użytkownik chcę mieć możliwość rejestracji i logowania się do systemu w sposób zapewniający bezpieczeństwo moich danych.
+- Kryteria akceptacji:
+  - Logowanie i rejestracja odbywają się na dedykowanych stronach.
+  - Logowanie wymaga podania adresu email i hasła.
+  - Rejestracja wymaga podania adresu email, hasła i potwierdzenia hasła.
+  - Użytkownik może logować się do systemu poprzez przycisk w prawym górnym rogu.
+  - Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym
+  - Nie korzystamy z zewnętrznych serwisów logowania (np. Google, GitHub).
+  - Odzyskiwanie hasła powinno być możliwe.
+
 ## 6. Metryki sukcesu
 
 - Metryka 1 (Jakość generowanych treści): Procent zaakceptowanych podsumowań wygenerowanych przez AI.
