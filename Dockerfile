@@ -25,7 +25,6 @@ RUN apk add curl rlwrap && curl -L -o /usr/local/bin/tailwindcss \
 WORKDIR /app
 COPY src ./src
 COPY dev ./dev
-COPY test ./test
 COPY resources ./resources
 COPY deps.edn .
 
