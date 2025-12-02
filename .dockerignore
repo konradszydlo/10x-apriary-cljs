@@ -1,23 +1,52 @@
+# Version control
 .git
 .gitignore
+
+# Dependencies and build artifacts
 node_modules
 .cpcache
 target
+
+# Development tools
 .nrepl-port
 .calva
 .lsp
 .clj-kondo/.cache
+
+# Logs
 *.log
+
+# OS files
 .DS_Store
+local-storage
+
+# IDE files
 10x-apriary-cljs.iml
+.idea
+
+# Docker files (not needed in image)
 Dockerfile
+Dockerfile-local
 .dockerignore
 docker-compose.yml
 Caddyfile
+
+# Documentation (not needed in production image)
 CLAUDE.md
 README.md
 .ai
 .claude
+
+# CI/CD
 .github
-.idea
+
+# SECURITY: Never include secrets or local data in image
+config.env
+config.env.*
+*.env
+.env
+.env.*
 storage
+*.key
+*.pem
+*.crt

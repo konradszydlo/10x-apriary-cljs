@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Caddy reverse proxy for HTTPS support
   caddy:
@@ -23,22 +21,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: apiary-app:latest
-    container_name: apiary-app
+    image: 10x-apiary:latest
+    container_name: apriary-app
     # Don't expose ports directly - Caddy will handle all traffic
     expose:
       - "8080"
     env_file:
       - config.env
     environment:
-      - BIFF_PROFILE=prod
+      - BIFF_PROFILE=dev
       - HOST=0.0.0.0
       - PORT=8080
     volumes:
       # Persist XTDB data
       - xtdb-data:/app/storage
       # Share static files with Caddy for direct serving
-      # Follows the same pattern as server-setup.sh: target/resources/public takes priority
       - static-files:/static:rw
     restart: unless-stopped
     # Copy static files to shared volume on startup
