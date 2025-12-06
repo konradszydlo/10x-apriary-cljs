@@ -254,8 +254,7 @@
   "Update an existing summary with partial data.
 
    This function implements the inline edit workflow:
-   - If content is updated and source is :ai-full, change source to :ai-partial
-   - Metadata-only updates don't change source
+   - If any field (content or metadata) is updated and source is :ai-full, change source to :ai-partial
    - Enforces RLS: users can only update their own summaries
 
    Params:
@@ -304,9 +303,14 @@
                 (validate-observation-date (:observation-date updates)))
 
             ;; Determine if source should change
+            ;; Any field update (content or metadata) should change :ai-full to :ai-partial
             content-changed? (some? trimmed-content)
+            metadata-changed? (or (contains? updates :hive-number)
+                                  (contains? updates :observation-date)
+                                  (contains? updates :special-feature))
+            any-field-changed? (or content-changed? metadata-changed?)
             current-source (:summary/source existing)
-            new-source (if (and content-changed? (= current-source :ai-full))
+            new-source (if (and any-field-changed? (= current-source :ai-full))
                          :ai-partial
                          current-source)
 
@@ -334,6 +338,7 @@
                   :summary-id summary-id
                   :user-id user-id
                   :content-changed content-changed?
+                  :metadata-changed metadata-changed?
                   :source-changed (not= new-source current-source)
                   :new-source new-source)
 

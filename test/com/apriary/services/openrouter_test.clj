@@ -57,7 +57,7 @@
 
   (testing "Duration increases with batch size"
     (let [small-batch [{:observation (apply str (repeat 50 "x"))}]
-          large-batch (vec (for [i (range 50)]
+          large-batch (vec (for [_i (range 50)]
                              {:observation (apply str (repeat 50 "x"))}))
           [_ small-result] (openrouter-service/generate-summaries-batch small-batch)
           [_ large-result] (openrouter-service/generate-summaries-batch large-batch)]

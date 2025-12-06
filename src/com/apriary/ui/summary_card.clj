@@ -272,9 +272,20 @@
         display-content (if (and truncated? (not expanded?))
                           (str (subs content 0 content-preview-length) "...")
                           content)]
-    [:div.content-area
+    [:div.content-area.relative.group
      {:id (str "summary-content-" summary-id)
       :data-content-expanded (str (boolean expanded?))}
+
+     ;; Edit button (appears on hover)
+     [:button.absolute.top-0.right-0.p-2.text-gray-400.hover:text-gray-600.opacity-0.group-hover:opacity-100.transition-opacity.bg-white.rounded
+      {:type "button"
+       :hx-get (str "/api/summaries/" summary-id "/edit")
+       :hx-target "closest .content-area"
+       :hx-swap "outerHTML"
+       :aria-label "Edit content"
+       :title "Edit content"}
+      (pencil-icon)]
+
      [:div.content-display.prose.prose-sm.max-w-none
       display-content]]))
 
@@ -339,11 +350,11 @@
 ;; =============================================================================
 
 (defn action-buttons
-  "Renders action buttons for summary operations (edit, accept, delete).
+  "Renders action buttons for summary operations (accept, delete).
 
   The accept button only appears for AI-generated summaries and is replaced
-  with an 'Accepted' badge after acceptance. Delete and accept operations
-  include confirmation dialogs.
+  with an 'Accepted' badge after acceptance. Delete operation includes
+  confirmation dialog.
 
   Args:
     summary-id - UUID string of the summary
@@ -354,15 +365,6 @@
     Hiccup div element with action buttons"
   [{:keys [summary-id source accepted?]}]
   [:div.action-buttons.flex.gap-2.items-center
-
-   ;; Edit button
-   [:button.btn-icon.p-2.text-gray-600.hover:text-gray-800.hover:bg-gray-100.rounded.transition-colors
-    {:type "button"
-     :hx-get (str "/api/summaries/" summary-id "/edit")
-     :hx-target "closest .summary-card .content-area"
-     :hx-swap "outerHTML"
-     :aria-label "Edit summary content"}
-    (pencil-icon)]
 
    ;; Accept button (conditional: only for AI summaries)
    (when (or (= source "ai-full") (= source "ai-partial"))

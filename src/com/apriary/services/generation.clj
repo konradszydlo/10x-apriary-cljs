@@ -333,11 +333,14 @@
       (when (not= (:generation/user-id generation) user-id)
         (throw (IllegalArgumentException. "Forbidden: Generation does not belong to user")))
 
-      ;; Query all summaries for this generation, grouped by source
+      ;; Query all summaries for this generation that haven't been accepted yet
+      ;; Note: Manual summaries should have generation-id = nil, so they won't match this query
+      ;; We only want to accept summaries that don't have :summary/accepted-at set
       (let [summaries-query {:find  '[?s ?source]
                              :where [['?s :summary/generation-id generation-id]
                                      ['?s :summary/user-id user-id]
-                                     ['?s :summary/source '?source]]}
+                                     ['?s :summary/source '?source]
+                                     '(not [?s :summary/accepted-at])]}
 
             summary-results (xt/q db summaries-query)
 
@@ -352,27 +355,61 @@
             manual-count (or (get grouped :manual) 0)
             total-summaries (count summary-results)
 
-            ;; Update generation counters
-            [status updated :as update-result] (update-counters node generation-id unedited-count edited-count)]
+            ;; Warn if manual summaries are found (data integrity issue)
+            _ (when (pos? manual-count)
+                (log/warn "Found manual summaries with generation-id set (data integrity issue)"
+                          :generation-id generation-id
+                          :manual-count manual-count))
 
-        (if (= status :ok)
-          (do
-            (log/info "Bulk accepted summaries for generation"
-                      :generation-id generation-id
-                      :user-id user-id
-                      :unedited-count unedited-count
-                      :edited-count edited-count
-                      :manual-count manual-count
-                      :total-summaries total-summaries)
+            ;; Calculate updated generation counters
+            current-unedited (:generation/accepted-unedited-count generation 0)
+            current-edited (:generation/accepted-edited-count generation 0)
+            new-unedited (+ current-unedited unedited-count)
+            new-edited (+ current-edited edited-count)
+            total-accepted (+ new-unedited new-edited)
+            generated-count (:generation/generated-count generation)
+            now (java.time.Instant/now)
 
-            [:ok {:generation      updated
-                  :unedited-count  unedited-count
-                  :edited-count    edited-count
-                  :manual-count    manual-count
-                  :total-summaries total-summaries}])
+            ;; Validate that we're not exceeding generated count
+            _ (when (> total-accepted generated-count)
+                (throw (IllegalArgumentException.
+                        (str "Counter validation failed: total accepted (" total-accepted
+                             ") exceeds generated count (" generated-count ")"))))
 
-          ;; Error updating counters - propagate error
-          update-result)))
+            ;; Build updated generation entity
+            updated-generation (assoc generation
+                                      :generation/accepted-unedited-count new-unedited
+                                      :generation/accepted-edited-count new-edited
+                                      :generation/updated-at now)
+
+            ;; Mark all summaries as accepted by setting :summary/accepted-at
+            summary-ids (mapv first summary-results)
+            summary-entities (mapv #(xt/entity db %) summary-ids)
+            accepted-entities (mapv #(assoc % :summary/accepted-at now) summary-entities)
+
+            ;; Build transaction with generation update + all summary updates
+            tx-ops (into [[:xtdb.api/put updated-generation]]
+                         (mapv (fn [entity] [:xtdb.api/put entity]) accepted-entities))]
+
+        ;; Submit all updates in a single transaction
+        (xt/submit-tx node tx-ops)
+
+        (log/info "Bulk accepted summaries for generation"
+                  :generation-id generation-id
+                  :user-id user-id
+                  :unedited-count unedited-count
+                  :edited-count edited-count
+                  :manual-count manual-count
+                  :total-summaries total-summaries
+                  :summaries-marked-accepted (count accepted-entities)
+                  :new-unedited new-unedited
+                  :new-edited new-edited)
+
+        [:ok {:generation      updated-generation
+              :unedited-count  unedited-count
+              :edited-count    edited-count
+              :manual-count    manual-count
+              :total-summaries total-summaries}]))
 
     (catch IllegalArgumentException e
       (let [msg (.getMessage e)]

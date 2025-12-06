@@ -154,7 +154,7 @@
 (deftest list-summaries-pagination-test
   (with-open [node (test-xtdb-node [])]
     (let [user-id (java.util.UUID/randomUUID)
-          _ (dorun (for [i (range 5)]
+          _ (dorun (for [_i (range 5)]
                      (create-test-summary node user-id)))
           _ (xt/sync node)
           db (xt/db node)
@@ -319,7 +319,7 @@
 (deftest update-summary-invalid-test
   (with-open [node (test-xtdb-node [])]
     (let [user-id (java.util.UUID/randomUUID)
-          [status created] (create-test-summary node user-id)
+          [_status created] (create-test-summary node user-id)
           _ (xt/sync node)
           summary-id (:summary/id created)]
 
@@ -452,7 +452,7 @@
                                :summary/updated-at (java.time.Instant/now)}]])
             _ (xt/sync node)
 
-            [status result] (summary-service/accept-summary node summary-id user-id)
+            [status _result] (summary-service/accept-summary node summary-id user-id)
             _ (xt/sync node)
             db (xt/db node)
             updated-gen (xt/entity db gen-id)]
@@ -496,7 +496,7 @@
                                :summary/updated-at (java.time.Instant/now)}]])
             _ (xt/sync node)
 
-            [status result] (summary-service/accept-summary node summary-id user-id)
+            [status _result] (summary-service/accept-summary node summary-id user-id)
             _ (xt/sync node)
             db (xt/db node)
             updated-gen (xt/entity db gen-id)]
@@ -554,7 +554,7 @@
                                :summary/updated-at (java.time.Instant/now)}]])
             _ (xt/sync node)
 
-            [status result] (summary-service/accept-summary node summary-id user-id)]
+            [status _result] (summary-service/accept-summary node summary-id user-id)]
 
         (is (= status :error))
         (is (= (:code result) "CONFLICT"))

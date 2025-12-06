@@ -215,6 +215,7 @@
   (let [generation-id (str (:generation/id generation))
         model (:generation/model generation)]
     [:div.generation-header.bg-blue-50.border-l-4.border-blue-500.p-4.rounded-r-md.mb-4
+     {:id (str "generation-header-" generation-id)}
      [:div.flex.flex-col.md:flex-row.justify-between.items-start.md:items-center.gap-4
 
       ;; Left side: Metadata

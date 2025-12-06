@@ -167,15 +167,59 @@
               (ui-helpers/error-toast-oob "Invalid summary ID"))}
 
       (let [summary-id (second uuid-result)
+
+            ;; Get the summary before deleting to know its generation-id
+            db (xt/db node)
+            summary-before (xt/entity db summary-id)
+            generation-id (:summary/generation-id summary-before)
+
             [status result] (summary-service/delete-summary
                              node summary-id user-id)]
 
         (if (= status :ok)
-          ;; Success: Return empty content (element already removed) + success toast
-          {:status 200
-           :headers {"content-type" "text/html"}
-           :body (rum/render-static-markup
-                  (ui-helpers/success-toast-oob "Summary deleted successfully"))}
+          ;; Success: Return empty content + success toast + updated header (if part of generation)
+          (let [toast (ui-helpers/success-toast-oob "Summary deleted successfully")
+
+                ;; If this summary was part of a generation, update the header
+                header-update (when (some? generation-id)
+                                (let [;; Wait for delete transaction to be indexed
+                                      _ (xt/sync node)
+                                      fresh-db (xt/db node)
+
+                                      ;; Get remaining summaries for this generation
+                                      summaries-query {:find '[?s]
+                                                       :where [['?s :summary/generation-id generation-id]
+                                                               ['?s :summary/user-id user-id]]}
+                                      summary-ids (xt/q fresh-db summaries-query)
+                                      remaining-count (count summary-ids)
+
+                                      ;; Get generation entity
+                                      generation (xt/entity fresh-db generation-id)
+
+                                      ;; Check if all remaining summaries are accepted
+                                      summaries (mapv (fn [[?s]] (xt/entity fresh-db ?s)) summary-ids)
+                                      all-accepted? (every? #(some? (:summary/accepted-at %)) summaries)
+
+                                      ;; Format generation date
+                                      generation-date (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
+                                                            zone (java.time.ZoneId/systemDefault)]
+                                                        (.format (.atZone (:generation/created-at generation) zone) formatter))]
+
+                                  ;; Return OOB swap for generation header
+                                  [:div
+                                   {:hx-swap-oob (str "innerHTML:#generation-header-" generation-id)}
+                                   ((requiring-resolve 'com.apriary.ui.summaries-list/generation-group-header)
+                                    {:generation generation
+                                     :generation-date generation-date
+                                     :summaries-count remaining-count
+                                     :all-accepted? all-accepted?})]))]
+
+            {:status 200
+             :headers {"content-type" "text/html"}
+             :body (rum/render-static-markup
+                    (if header-update
+                      [:div toast header-update]
+                      toast))})
 
           ;; Error: Return error toast
           (let [error-message (case (:code result)
@@ -550,14 +594,23 @@
                                                      " summaries generated successfully"
                                                      (when (pos? rows-rejected)
                                                        (str ". " rows-rejected " rows rejected.")))
-                                ;; Convert entities to DTOs for rendering
-                                summary-dtos (mapv summary-dto/entity->dto summary-entities)
-                                main-content (map (fn [dto]
-                                                    (summary-card/summary-card
-                                                     {:summary dto
-                                                      :generation-date generation-date
-                                                      :model-name model}))
-                                                  summary-dtos)
+
+                                ;; Wait for transaction to be indexed and get fresh entities
+                                _ (xt/sync node)
+                                fresh-db (xt/db node)
+                                summaries (mapv #(xt/entity fresh-db (:xt/id %)) summary-entities)
+
+                                ;; All newly imported summaries are not accepted yet
+                                all-accepted? false
+
+                                ;; Render complete generation group with header and bulk accept button
+                                main-content ((requiring-resolve 'com.apriary.ui.summaries-list/generation-group)
+                                              {:generation generation
+                                               :summaries summaries
+                                               :generation-date generation-date
+                                               :all-accepted? all-accepted?
+                                               :summaries-count (count summaries)})
+
                                 toast (ui-helpers/success-toast-oob success-message)
                                 rejected-rows-html (when (seq rejected-rows)
                                                      (csv-import/rejected-rows-oob-html rejected-rows))
@@ -567,7 +620,7 @@
                              :headers {"content-type" "text/html"}
                              :body (rum/render-static-markup
                                     [:div
-                                     ;; Main target: new summary cards
+                                     ;; Main target: complete generation group with bulk accept button
                                      main-content
                                      ;; OOB: success toast
                                      toast
@@ -979,7 +1032,8 @@
                                     "hive-number" "e.g., A-01"
                                     "observation-date" "DD-MM-YYYY"
                                     "special-feature" "e.g., Queen active"
-                                    "")]
+                                    "")
+                      source (:source summary-dto)]
                   {:status 200
                    :headers {"content-type" "text/html"}
                    :body (rum/render-static-markup
@@ -990,6 +1044,11 @@
                              :value updated-value
                              :summary-id (:id summary-dto)
                              :placeholder placeholder})
+
+                           ;; OOB: Update source badge if needed
+                           [:span.source-badge
+                            {:hx-swap-oob (str "outerHTML:.summary-card[data-summary-id='" (:id summary-dto) "'] .source-badge")}
+                            (summary-card/source-badge {:source source})]
 
                            ;; OOB: Success toast
                            (ui-helpers/success-toast-oob
@@ -1112,7 +1171,7 @@
 
   Returns:
     Ring response with HTML for complete generation-group component"
-  [{:keys [session biff.xtdb/node biff/db path-params] :as _ctx}]
+  [{:keys [session biff.xtdb/node path-params] :as _ctx}]
   (if-not (some? (:uid session))
     {:status 401
      :headers {"content-type" "text/html"}
@@ -1136,19 +1195,30 @@
 
           (if (= status :ok)
             ;; Success: Re-render entire generation group
-            (let [{:keys [generation total-summaries]} result
+            (let [{:keys [total-summaries]} result
 
-                  ;; Fetch all summaries for this generation
+                  ;; Get fresh database snapshot AFTER the bulk accept transaction
+                  ;; Wait for transaction to be indexed
+                  _ (xt/sync node)
+                  fresh-db (xt/db node)
+
+                  ;; Fetch fresh generation entity (with updated counters)
+                  fresh-generation (xt/entity fresh-db generation-id)
+
+                  ;; Fetch all summaries for this generation from fresh DB
                   summaries-query {:find '[?s]
                                    :where [['?s :summary/generation-id generation-id]
                                            ['?s :summary/user-id user-id]]}
-                  summary-ids (xt/q db summaries-query)
-                  summaries (mapv (fn [[?s]] (xt/entity db ?s)) summary-ids)
+                  summary-ids (xt/q fresh-db summaries-query)
+                  summaries (mapv (fn [[?s]] (xt/entity fresh-db ?s)) summary-ids)
+
+                  ;; Check if all summaries are accepted
+                  all-accepted? (every? #(some? (:summary/accepted-at %)) summaries)
 
                   ;; Format generation date
                   generation-date (let [formatter (java.time.format.DateTimeFormatter/ofPattern "dd-MM-yyyy")
                                         zone (java.time.ZoneId/systemDefault)]
-                                    (.format (.atZone (:generation/created-at generation) zone) formatter))]
+                                    (.format (.atZone (:generation/created-at fresh-generation) zone) formatter))]
 
               {:status 200
                :headers {"content-type" "text/html"}
@@ -1156,10 +1226,10 @@
                       [:div
                        ;; Main target: entire generation group
                        ((requiring-resolve 'com.apriary.ui.summaries-list/generation-group)
-                        {:generation generation
+                        {:generation fresh-generation
                          :summaries summaries
                          :generation-date generation-date
-                         :all-accepted? true
+                         :all-accepted? all-accepted?
                          :summaries-count (count summaries)})
 
                        ;; OOB: Success toast
