@@ -452,7 +452,7 @@
                                :summary/updated-at (java.time.Instant/now)}]])
             _ (xt/sync node)
 
-            [status _result] (summary-service/accept-summary node summary-id user-id)
+            [status result] (summary-service/accept-summary node summary-id user-id)
             _ (xt/sync node)
             db (xt/db node)
             updated-gen (xt/entity db gen-id)]
@@ -554,7 +554,7 @@
                                :summary/updated-at (java.time.Instant/now)}]])
             _ (xt/sync node)
 
-            [status _result] (summary-service/accept-summary node summary-id user-id)]
+            [status result] (summary-service/accept-summary node summary-id user-id)]
 
         (is (= status :error))
         (is (= (:code result) "CONFLICT"))
