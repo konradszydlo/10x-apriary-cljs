@@ -23,6 +23,8 @@ You can copy `config.env.example` to `config.env`.
 
 ### Development
 
+#### Running
+
 Run `clj -M:dev dev` to get started. See `clj -M:dev --help` for other commands.
 
 ```shell
@@ -31,6 +33,20 @@ cljfmt check
 cljfmt fix
 
 clj-kondo --lint src test
+```
+
+#### AI skills
+
+The project uses [10x-cli](https://github.com/przeprogramowani/10x-cli) with associated skills.
+
+```shell
+npx @przeprogramowani/10x-cli list
+```
+
+Get first lesson.
+
+```shell
+npx @przeprogramowani/10x-cli@latest get m1l1
 ```
 
 ### Docker
