@@ -1,7 +1,7 @@
 (ns com.apriary.auth.registration-test
   "Testy systemu rejestracji użytkowników
 
-  Plan testów: .ai/test/auth/user-registration-plan.md"
+  Plan testów: .ai/v1/test/auth/user-registration-plan.md"
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
             [com.biffweb :as biff :refer [test-xtdb-node]]
