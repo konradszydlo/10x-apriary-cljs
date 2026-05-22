@@ -23,8 +23,7 @@
  :biff.refresh/enabled          #profile {:dev true :default false}
 
  :biff.nrepl/port #or [#biff/env NREPL_PORT "7888"]
- :biff.nrepl/args ["--port" #ref [:biff.nrepl/port]
-                   "--middleware" "[cider.nrepl/cider-middleware,refactor-nrepl.middleware/wrap-refactor]"]
+ :biff.nrepl/args ["--port" #ref [:biff.nrepl/port]]
 
  :biff.system-properties/user.timezone                 "UTC"
  :biff.system-properties/clojure.tools.logging.factory "clojure.tools.logging.impl/slf4j-factory"

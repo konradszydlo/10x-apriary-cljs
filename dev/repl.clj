@@ -86,6 +86,17 @@
   ;; Test token generation and hashing functions
   (require '[com.apriary.auth :as auth])
 
+  ;; Update password
+  (let [{:keys [biff/db] :as ctx} (get-context)
+        user-id #uuid "c2f3a68c-d263-406e-9146-671c881be8aa"
+        new-password "new-password-here!"  ;; Change this!
+        new-hash (auth/hash-password new-password)]
+    (biff/submit-tx ctx
+                    [{:db/doc-type :user
+                      :xt/id user-id
+                      :db/op :update
+                      :user/password-hash new-hash}]))
+
   ;; Test 1: Generate tokens are unique
   (let [token1 (auth/generate-secure-token)
         token2 (auth/generate-secure-token)]
@@ -208,7 +219,7 @@
   ;; ====================
 
   ;; Test 7: CSRF Protection - Verify CSRF token is required
-  (comment
+(comment
     "CSRF protection test - manual verification required:
      1. Forms created with biff/form automatically include CSRF token
      2. POST requests without valid CSRF token are rejected by middleware
@@ -223,7 +234,7 @@
      - /auth/signin (signin form)
      - /auth/signout (logout form)
      - /auth/send-password-reset (forgot password form)
-     - /auth/reset-password (reset password form)")
+     - /auth/reset-password (reset password form)"
 
   ;; Test 8: Route Protection - Authenticated routes
   (require '[com.apriary.middleware :as mid])
@@ -324,10 +335,10 @@
     {:tokens-unique (not= token1 token2)
      :hash-consistent (= hash1 hash2-same)
      :different-hashes (not= hash1 hash2-diff)
-     :hash-length-correct (= 64 (count hash1))})
+     :hash-length-correct (= 64 (count hash1))}))
 
   ;; Test 12: Email Enumeration Prevention
-  (comment
+(comment
     "Email enumeration prevention test - manual verification required:
 
      Test procedure:
@@ -343,4 +354,4 @@
 
      Security benefit:
      - Attackers cannot determine which emails are registered
-     - Prevents user enumeration attacks"))
+     - Prevents user enumeration attacks")
