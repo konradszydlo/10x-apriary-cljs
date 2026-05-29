@@ -60,6 +60,10 @@ RUN clj -M:dev uberjar && \
 # =============================================================================
 FROM eclipse-temurin:21-alpine
 
+# Build-time arguments must be redeclared in each stage where they're used
+ARG GIT_COMMIT_SHA=unknown
+ARG BUILD_DATE=unknown
+
 # Metadata labels following OCI image spec
 LABEL org.opencontainers.image.title="10x-Apriary" \
       org.opencontainers.image.description="Apiary work summary automation application built with Biff/Clojure" \
