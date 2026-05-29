@@ -35,6 +35,15 @@ cljfmt fix
 clj-kondo --lint src test
 ```
 
+#### Security deps scanning
+
+[clj-watson](https://github.com/clj-holmes/clj-watson) checks for vulnerable dependencies.
+Requires [NIST NVD](https://nvd.nist.gov/) Api Key in `clj-watson.properties`.
+
+```shell
+clojure -M:clj-watson
+```
+
 #### AI skills
 
 The project uses [10x-cli](https://github.com/przeprogramowani/10x-cli) with associated skills.

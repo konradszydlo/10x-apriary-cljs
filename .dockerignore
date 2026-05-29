@@ -12,9 +12,9 @@ target
 .calva
 .lsp
 .clj-kondo/.cache
-
 # Logs
 *.log
+clj-watson.properties
 
 # OS files
 .DS_Store

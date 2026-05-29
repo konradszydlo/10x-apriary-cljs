@@ -1,32 +1,52 @@
 {:paths ["src" "resources" "target/resources"]
- :deps {org.clojure/clojure        {:mvn/version "1.12.0"}
-        com.biffweb/biff           {:git/url "https://github.com/jacobobryant/biff", :git/sha "12d4ac6", :git/tag "v1.9.0"}
-        cheshire/cheshire          {:mvn/version "6.1.0"}
-        org.clojure/data.csv       {:mvn/version "1.1.0"}
+ :deps {org.clojure/clojure        {:mvn/version "1.12.4"}
+        com.biffweb/biff           {:git/url "https://github.com/jacobobryant/biff", :git/sha "fef3b44b", :git/tag "v1.9.1"}
+        cheshire/cheshire          {:mvn/version "6.2.0"}
+        org.clojure/data.csv       {:mvn/version "1.1.1"}
         org.mindrot/jbcrypt        {:mvn/version "0.4"}
 
+        ;; Security vulnerability fixes (dependency overrides)
+        org.eclipse.jetty.websocket/jetty-websocket-core-common {:mvn/version "12.1.8"}
+        org.eclipse.jetty.websocket/jetty-websocket-core-server {:mvn/version "12.1.8"}
+        org.eclipse.jetty.ee9.websocket/jetty-ee9-websocket-jetty-server {:mvn/version "12.1.8"}
+        org.eclipse.jetty/jetty-xml            {:mvn/version "12.1.8"}
+        org.eclipse.jetty/jetty-unixdomain-server {:mvn/version "12.1.8"}
+        org.eclipse.jetty/jetty-session        {:mvn/version "12.1.8"}
+        org.postgresql/postgresql  {:mvn/version "42.7.11"}
+        io.airlift/aircompressor   {:mvn/version "2.0.3"}
+        org.iq80.snappy/snappy     {:mvn/version "0.5"}
+
         ;; Notes on logging: https://gist.github.com/jacobobryant/76b7a08a07d5ef2cc076b048d078f1f3
-        org.slf4j/slf4j-simple     {:mvn/version "2.0.0-alpha5"}
-        org.slf4j/log4j-over-slf4j {:mvn/version "1.7.36"}
-        org.slf4j/jul-to-slf4j     {:mvn/version "1.7.36"}
-        org.slf4j/jcl-over-slf4j   {:mvn/version "1.7.36"}}
+        org.slf4j/slf4j-simple     {:mvn/version "2.0.17"}
+        org.slf4j/log4j-over-slf4j {:mvn/version "2.0.17"}
+        org.slf4j/jul-to-slf4j     {:mvn/version "2.0.17"}
+        org.slf4j/jcl-over-slf4j   {:mvn/version "2.0.17"}}
  :aliases
- {:dev {:extra-deps {com.biffweb/tasks {:git/url "https://github.com/jacobobryant/biff", :git/sha "12d4ac6", :git/tag "v1.9.0", :deps/root "libs/tasks"}}
-        :extra-paths ["dev" "test"]
-        :jvm-opts ["-XX:-OmitStackTraceInFastThrow"
-                   "-XX:+CrashOnOutOfMemoryError"
-                   "-Dbiff.env.BIFF_PROFILE=dev"]
-        :main-opts ["-m" "com.biffweb.task-runner" "tasks/tasks"]}
-  :test {:extra-paths ["test"]
-         :extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
-         :main-opts ["-m" "cognitect.test-runner"]}
-  :coverage {:extra-paths ["test"]
-             :extra-deps {cloverage/cloverage {:mvn/version "1.2.4"}}
-             :main-opts ["-m" "cloverage.coverage"
-                         "--src-ns-path" "src"
-                         "--test-ns-path" "test"
-                         "--codecov"]}
-  :prod {:jvm-opts ["-XX:-OmitStackTraceInFastThrow"
-                    "-XX:+CrashOnOutOfMemoryError"
-                    "-Dbiff.env.BIFF_PROFILE=prod"]
-         :main-opts ["-m" "com.apriary"]}}}
+ {:dev        {:extra-deps  {com.biffweb/tasks {:git/url "https://github.com/jacobobryant/biff", :git/sha "fef3b44b", :git/tag "v1.9.1", :deps/root "libs/tasks"}}
+               :extra-paths ["dev" "test"]
+               :jvm-opts    ["-XX:-OmitStackTraceInFastThrow"
+                             "-XX:+CrashOnOutOfMemoryError"
+                             "-Dbiff.env.BIFF_PROFILE=dev"]
+               :main-opts   ["-m" "com.biffweb.task-runner" "tasks/tasks"]}
+  :test       {:extra-paths ["test"]
+               :extra-deps  {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+               :main-opts   ["-m" "cognitect.test-runner"]}
+  :coverage   {:extra-paths ["test"]
+               :extra-deps  {cloverage/cloverage {:mvn/version "1.2.4"}}
+               :main-opts   ["-m" "cloverage.coverage"
+                             "--src-ns-path" "src"
+                             "--test-ns-path" "test"
+                             "--codecov"]}
+
+  :clj-watson {:replace-deps
+               {io.github.clj-holmes/clj-watson
+                {:git/tag "v6.1.0" :git/sha "be98e4d"}}
+               :main-opts ["-m" "clj-watson.cli" "scan"
+                           "--deps-edn-path" "deps.edn"
+                           "--clj-watson-properties" "clj-watson.properties"
+                           "--fail-on-result"]}
+
+  :prod       {:jvm-opts  ["-XX:-OmitStackTraceInFastThrow"
+                           "-XX:+CrashOnOutOfMemoryError"
+                           "-Dbiff.env.BIFF_PROFILE=prod"]
+               :main-opts ["-m" "com.apriary"]}}}

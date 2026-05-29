@@ -15,5 +15,6 @@
 .portal/
 .shadow-cljs/
 .idea/
+clj-watson.properties
 10x-apriary-cljs.iml
 local-storage
