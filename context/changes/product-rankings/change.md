@@ -1,7 +1,7 @@
 ---
 change_id: product-rankings
 title: Add product rankings view
-status: plan_reviewed
+status: implemented
 created: 2026-06-01
 updated: 2026-06-01
 roadmap_ref: S-02

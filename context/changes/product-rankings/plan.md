@@ -307,10 +307,10 @@ No schema changes or data migrations required. Rankings feature is pure read ope
 
 #### Automated
 
-- [x] 1.1 Server starts without errors
-- [x] 1.2 Rankings route registered (returns 200 after auth)
-- [x] 1.3 Service tests pass
-- [x] 1.4 No linting errors
+- [x] 1.1 Server starts without errors — cb09f78
+- [x] 1.2 Rankings route registered (returns 200 after auth) — cb09f78
+- [x] 1.3 Service tests pass — cb09f78
+- [x] 1.4 No linting errors — cb09f78
 
 #### Manual
 
