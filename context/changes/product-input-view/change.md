@@ -1,7 +1,7 @@
 ---
 change_id: product-input-view
 title: Add product input and view table
-status: implemented
+status: impl_reviewed
 created: 2026-06-01
 updated: 2026-06-01
 roadmap_ref: S-01

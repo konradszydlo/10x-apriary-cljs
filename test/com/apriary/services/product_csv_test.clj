@@ -3,7 +3,7 @@
             [com.apriary.services.product-csv :as sut]))
 
 (deftest validate-product-row-test
-  (let [headers ["hive_number" "date" "product" "quantity" "metric"]
+  (let [_ ["hive_number" "date" "product" "quantity" "metric"]
         column-indices {:hive-number 0 :date 1 :product 2 :quantity 3 :metric 4}]
 
     (testing "Valid row with all fields"

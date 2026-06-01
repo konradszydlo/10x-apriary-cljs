@@ -23,7 +23,7 @@
     Ring response with HTML body"
   [{:keys [session biff/db] :as ctx}]
   (let [user-id (:uid session)
-        [status result] (product-service/list-products db user-id)
+        [_ result] (product-service/list-products db user-id)
         products (:products result [])]
     (layout/app-page
      ctx
@@ -49,7 +49,7 @@
 
   Returns:
     Ring response with htmx fragments (table + OOB swaps)"
-  [{:keys [session biff.xtdb/node params] :as ctx}]
+  [{:keys [session biff.xtdb/node params] :as _ctx}]
   (let [user-id (:uid session)
         csv-input (:csv params)]
 
@@ -109,29 +109,40 @@
                               [{:row-number 0 :reason "Failed to save products to database"}])])})
 
                   ;; Success - fetch updated products and return htmx response
-                  (let [_ (xt/sync node)
-                        db (xt/db node)
-                        [list-status list-result] (product-service/list-products db user-id)
-                        products (:products list-result [])]
+                  (try
+                    (xt/sync node)
+                    (let [db (xt/db node)
+                          [_ list-result] (product-service/list-products db user-id)
+                          products (:products list-result [])]
 
-                    (log/info "Products imported successfully"
-                              :user-id user-id
-                              :valid-count (:count store-result)
-                              :rejected-count (count rejected-rows))
+                      (log/info "Products imported successfully"
+                                :user-id user-id
+                                :valid-count (:count store-result)
+                                :rejected-count (count rejected-rows))
 
-                    {:status 200
-                     :headers {"content-type" "text/html"}
-                     :body (rum/render-static-markup
-                            [:div
-                             ;; Main content: refreshed products table
-                             (products-ui/products-table products)
-                             ;; OOB swap: success toast (only if some valid rows)
-                             (when (> (:count store-result) 0)
-                               (products-ui/success-toast-oob (:count store-result)))
-                             ;; OOB swap: rejected rows (if any)
-                             (products-ui/rejected-rows-oob rejected-rows)
-                             ;; OOB swap: clear form
-                             (products-ui/clear-form-oob)])}))))))))))
+                      {:status 200
+                       :headers {"content-type" "text/html"}
+                       :body (rum/render-static-markup
+                              [:div
+                               ;; Main content: refreshed products table
+                               (products-ui/products-table products)
+                               ;; OOB swap: success toast (only if some valid rows)
+                               (when (> (:count store-result) 0)
+                                 (products-ui/success-toast-oob (:count store-result)))
+                               ;; OOB swap: rejected rows (if any)
+                               (products-ui/rejected-rows-oob rejected-rows)
+                               ;; OOB swap: clear form
+                               (products-ui/clear-form-oob)])})
+                    (catch Exception e
+                      (log/error "Failed to sync database after product import"
+                                 :user-id user-id
+                                 :error e)
+                      {:status 500
+                       :headers {"content-type" "text/html"}
+                       :body (rum/render-static-markup
+                              [:div
+                               (products-ui/rejected-rows-oob
+                                [{:row-number 0 :reason "Failed to refresh product list. Please reload the page."}])])})))))))))))
 
 ;; =============================================================================
 ;; Module Definition

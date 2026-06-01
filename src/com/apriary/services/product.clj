@@ -8,6 +8,11 @@
 ;; - Returns: [:ok result] on success, [:error {:code ... :message ...}] on failure
 ;; - Implements Row-Level Security (RLS) checks
 ;; - Uses guard clauses for early error handling
+;;
+;; NOTE: This service currently provides only create-batch and list operations.
+;; Edit/delete functionality is intentionally deferred to roadmap item S-03.
+;; This is not an incomplete implementation - it matches the MVP scope defined
+;; in the product-input-view plan (see plan.md "What We're NOT Doing").
 ;; - Logs operations for audit trail
 
 ;; =============================================================================
@@ -104,8 +109,10 @@
           ;; Execute query
           results (xt/q db query-params)
 
-          ;; Fetch full entities
-          products (mapv (fn [[?p]] (xt/entity db ?p)) results)]
+          ;; Fetch full entities and sort by date descending (newest first)
+          products (->> results
+                        (mapv (fn [[?p]] (xt/entity db ?p)))
+                        (sort-by :product/date #(compare %2 %1)))]
 
       (log/info "Listed user products"
                 :user-id user-id

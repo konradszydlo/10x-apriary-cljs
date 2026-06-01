@@ -215,10 +215,11 @@
             ;; Validate all rows
             results (map-indexed
                      (fn [idx row]
-                       (let [result (validate-product-row row (+ idx 2) column-indices)] ; +2 for header row and 1-indexing
+                       (let [row-num (+ idx 2) ; +2 for header row and 1-indexing
+                             result (validate-product-row row row-num column-indices)]
                          (if (= (first result) :valid)
                            result
-                           [:error {:row-number (+ idx 2)
+                           [:error {:row-number row-num
                                     :reason (second result)}])))
                      rows)
 

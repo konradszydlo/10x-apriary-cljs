@@ -77,7 +77,7 @@
         [:th.border.px-4.py-2.text-right "Quantity"]
         [:th.border.px-4.py-2.text-left "Metric"]]]
       [:tbody
-       (for [product (sort-by :product/date #(compare %2 %1) products)]
+       (for [product products]
          ^{:key (:product/id product)}
          [:tr.hover:bg-gray-50
           [:td.border.px-4.py-2 (:product/hive-number product)]
