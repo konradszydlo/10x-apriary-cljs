@@ -6,6 +6,7 @@
             [com.apriary.pages.generations :as generations]
             [com.apriary.pages.summaries-view :as summaries-view]
             [com.apriary.pages.products :as products]
+            [com.apriary.pages.rankings :as rankings]
             [com.apriary.middleware :as mid]
             [com.apriary.ui :as ui]
             [com.apriary.schema :as schema]
@@ -24,6 +25,7 @@
    generations/module
    summaries-view/module
    products/module
+   rankings/module
    schema/module])
 
 (def routes [["" {:middleware [mid/wrap-site-defaults]}
