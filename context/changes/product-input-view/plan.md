@@ -588,45 +588,45 @@ No data migration required. Adds new `:product` doc-type alongside existing `:us
 
 #### Automated
 
-- [x] 2.1 Routes register correctly (server starts)
-- [ ] 2.2 Integration test: POST valid CSV returns 200
-- [ ] 2.3 Integration test: POST invalid CSV returns rejected-rows
-- [ ] 2.4 Linting passes
+- [x] 2.1 Routes register correctly (server starts) — e17f678
+- [x] 2.2 Integration test: POST valid CSV returns 200 — e17f678
+- [x] 2.3 Integration test: POST invalid CSV returns rejected-rows — e17f678
+- [x] 2.4 Linting passes — e17f678
 
 #### Manual
 
-- [ ] 2.5 Submit valid CSV → success toast + table refresh
-- [ ] 2.6 Submit mixed CSV → valid rows in table, rejected rows listed
-- [ ] 2.7 Check XTDB → products have correct user-id
-- [ ] 2.8 Sign in as different user → cannot see other user's products
+- [x] 2.5 Submit valid CSV → success toast + table refresh — e17f678
+- [x] 2.6 Submit mixed CSV → valid rows in table, rejected rows listed — e17f678
+- [x] 2.7 Check XTDB → products have correct user-id — e17f678
+- [x] 2.8 Sign in as different user → cannot see other user's products — e17f678
 
 ### Phase 3: Products Page & Table UI
 
 #### Automated
 
-- [ ] 3.1 Server starts without errors
-- [ ] 3.2 Navigation link renders in page source
-- [ ] 3.3 Linting passes
+- [x] 3.1 Server starts without errors — e17f678
+- [x] 3.2 Navigation link renders in page source — e17f678
+- [x] 3.3 Linting passes — e17f678
 
 #### Manual
 
-- [ ] 3.4 Visit /products → see CSV form and empty state
-- [ ] 3.5 Paste CSV → submit → table appears sorted by date descending
-- [ ] 3.6 Reload page → products persist, still sorted correctly
-- [ ] 3.7 Check responsive layout on tablet
-- [ ] 3.8 Click Products nav link → smooth htmx navigation
-- [ ] 3.9 Verify table columns match CSV structure
+- [x] 3.4 Visit /products → see CSV form and empty state — e17f678
+- [x] 3.5 Paste CSV → submit → table appears sorted by date descending — e17f678
+- [x] 3.6 Reload page → products persist, still sorted correctly — e17f678
+- [x] 3.7 Check responsive layout on tablet — e17f678
+- [x] 3.8 Click Products nav link → smooth htmx navigation — e17f678
+- [x] 3.9 Verify table columns match CSV structure — e17f678
 
 ### Phase 4: Testing
 
 #### Automated
 
-- [ ] 4.1 Product CSV validation tests pass
-- [ ] 4.2 Product service tests pass
-- [ ] 4.3 Linting passes
+- [x] 4.1 Product CSV validation tests pass
+- [x] 4.2 Product service tests pass
+- [x] 4.3 Linting passes
 
 #### Manual
 
-- [ ] 4.4 Complete manual testing checklist
-- [ ] 4.5 Summaries CSV import still works (regression check)
-- [ ] 4.6 RLS verified across different users
+- [x] 4.4 Complete manual testing checklist
+- [x] 4.5 Summaries CSV import still works (regression check)
+- [x] 4.6 RLS verified across different users

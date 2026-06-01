@@ -25,17 +25,15 @@
   (let [user-id (:uid session)
         [status result] (product-service/list-products db user-id)
         products (:products result [])]
-    {:status 200
-     :headers {"content-type" "text/html"}
-     :body (rum/render-static-markup
-            (layout/app-page
-             ctx
-             [:div.max-w-6xl.mx-auto.p-6
-              [:h1.text-2xl.font-bold.mb-6 "Production Tracking"]
-              [:div#toast-container]
-              (products-ui/csv-form)
-              (products-ui/rejected-rows-component [])
-              (products-ui/products-table products)]))}))
+    (layout/app-page
+     ctx
+     {:page-title "Production Tracking"}
+     [:div.max-w-6xl.mx-auto.p-6
+      [:h1.text-2xl.font-bold.mb-6 "Production Tracking"]
+      [:div#toast-container]
+      (products-ui/csv-form)
+      (products-ui/rejected-rows-component [])
+      (products-ui/products-table products)])))
 
 ;; =============================================================================
 ;; Products Import Handler
@@ -51,7 +49,7 @@
 
   Returns:
     Ring response with htmx fragments (table + OOB swaps)"
-  [{:keys [session biff/node params] :as ctx}]
+  [{:keys [session biff.xtdb/node params] :as ctx}]
   (let [user-id (:uid session)
         csv-input (:csv params)]
 
