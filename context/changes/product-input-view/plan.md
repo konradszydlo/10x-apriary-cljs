@@ -604,29 +604,29 @@ No data migration required. Adds new `:product` doc-type alongside existing `:us
 
 #### Automated
 
-- [x] 3.1 Server starts without errors — e17f678
-- [x] 3.2 Navigation link renders in page source — e17f678
-- [x] 3.3 Linting passes — e17f678
+- [x] 3.1 Server starts without errors — d9305f9
+- [x] 3.2 Navigation link renders in page source — d9305f9
+- [x] 3.3 Linting passes — d9305f9
 
 #### Manual
 
-- [x] 3.4 Visit /products → see CSV form and empty state — e17f678
-- [x] 3.5 Paste CSV → submit → table appears sorted by date descending — e17f678
-- [x] 3.6 Reload page → products persist, still sorted correctly — e17f678
-- [x] 3.7 Check responsive layout on tablet — e17f678
-- [x] 3.8 Click Products nav link → smooth htmx navigation — e17f678
-- [x] 3.9 Verify table columns match CSV structure — e17f678
+- [x] 3.4 Visit /products → see CSV form and empty state — d9305f9
+- [x] 3.5 Paste CSV → submit → table appears sorted by date descending — d9305f9
+- [x] 3.6 Reload page → products persist, still sorted correctly — d9305f9
+- [x] 3.7 Check responsive layout on tablet — d9305f9
+- [x] 3.8 Click Products nav link → smooth htmx navigation — d9305f9
+- [x] 3.9 Verify table columns match CSV structure — d9305f9
 
 ### Phase 4: Testing
 
 #### Automated
 
-- [x] 4.1 Product CSV validation tests pass
-- [x] 4.2 Product service tests pass
-- [x] 4.3 Linting passes
+- [x] 4.1 Product CSV validation tests pass — d9305f9
+- [x] 4.2 Product service tests pass — d9305f9
+- [x] 4.3 Linting passes — d9305f9
 
 #### Manual
 
-- [x] 4.4 Complete manual testing checklist
-- [x] 4.5 Summaries CSV import still works (regression check)
-- [x] 4.6 RLS verified across different users
+- [x] 4.4 Complete manual testing checklist — d9305f9
+- [x] 4.5 Summaries CSV import still works (regression check) — d9305f9
+- [x] 4.6 RLS verified across different users — d9305f9
