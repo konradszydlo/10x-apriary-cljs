@@ -572,23 +572,23 @@ No data migration required. Adds new `:product` doc-type alongside existing `:us
 
 #### Automated
 
-- [x] 1.1 Schema validation passes
-- [x] 1.2 Product CSV validation unit tests pass
-- [x] 1.3 Product service unit tests pass
-- [x] 1.4 Linting passes
+- [x] 1.1 Schema validation passes — 7b55ae2
+- [x] 1.2 Product CSV validation unit tests pass — 7b55ae2
+- [x] 1.3 Product service unit tests pass — 7b55ae2
+- [x] 1.4 Linting passes — 7b55ae2
 
 #### Manual
 
-- [x] 1.5 REPL test: create products via service, verify user-id set
-- [x] 1.6 REPL test: list products with different user-id returns empty (RLS)
-- [x] 1.7 REPL test: validate invalid date returns error
-- [x] 1.8 REPL test: validate invalid metric returns error
+- [x] 1.5 REPL test: create products via service, verify user-id set — 7b55ae2
+- [x] 1.6 REPL test: list products with different user-id returns empty (RLS) — 7b55ae2
+- [x] 1.7 REPL test: validate invalid date returns error — 7b55ae2
+- [x] 1.8 REPL test: validate invalid metric returns error — 7b55ae2
 
 ### Phase 2: CSV Import Handler
 
 #### Automated
 
-- [ ] 2.1 Routes register correctly (server starts)
+- [x] 2.1 Routes register correctly (server starts)
 - [ ] 2.2 Integration test: POST valid CSV returns 200
 - [ ] 2.3 Integration test: POST invalid CSV returns rejected-rows
 - [ ] 2.4 Linting passes

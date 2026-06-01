@@ -34,6 +34,7 @@
 
   Displays:
   - App name/logo (links to /)
+  - Navigation links (Summaries, Products)
   - New Summary button (links to /summaries-new)
   - Logout button (form submission to /auth/signout)
 
@@ -44,13 +45,24 @@
     [:header.sticky.top-0.z-50.bg-white.shadow-sm
      [:nav.max-w-7xl.mx-auto.px-4.sm:px-6.lg:px-8
       [:div.flex.items-center.justify-between.h-16
-       ;; Left: App Name/Logo
-       [:div.flex-shrink-0
+       ;; Left: App Name/Logo + Navigation
+       [:div.flex.items-center.gap-6
         [:a.flex.items-center
          {:href "/"
           :hx-boost "true"
           :aria-label "Apriary Summary Home"}
-         [:span.text-xl.font-bold.text-gray-900 "Apriary Summary"]]]
+         [:span.text-xl.font-bold.text-gray-900 "Apriary Summary"]]
+
+        ;; Navigation Links
+        [:div.flex.gap-4
+         [:a.text-gray-700.hover:text-gray-900.px-3.py-2.rounded.hover:bg-gray-100
+          {:href "/summaries"
+           :hx-boost "true"}
+          "Summaries"]
+         [:a.text-gray-700.hover:text-gray-900.px-3.py-2.rounded.hover:bg-gray-100
+          {:href "/products"
+           :hx-boost "true"}
+          "Products"]]]
 
        ;; Right: Actions
        [:div.flex.items-center.gap-4
