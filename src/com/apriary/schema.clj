@@ -44,7 +44,20 @@
                           [:password-reset-token/token           :string]
                           [:password-reset-token/expires-at      inst?]
                           [:password-reset-token/created-at      inst?]
-                          [:password-reset-token/used-at {:optional true} [:maybe inst?]]]})
+                          [:password-reset-token/used-at {:optional true} [:maybe inst?]]]
+
+   :product/id :uuid
+   :product [:map {:closed true}
+             [:xt/id                 :uuid]
+             [:product/id            :uuid]
+             [:product/user-id       :uuid]
+             [:product/hive-number   :string]
+             [:product/date          [:maybe :string]]  ; DD-MM-YYYY format or nil
+             [:product/product       :string]           ; e.g., "Honey", "Pollen"
+             [:product/quantity      [:int {:min 1}]]   ; Positive integer
+             [:product/metric        [:enum "kg" "ml" "g"]]
+             [:product/created-at    inst?]
+             [:product/updated-at    inst?]]})
 
 (def module
   {:schema schema})
