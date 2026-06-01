@@ -314,10 +314,10 @@ No schema changes or data migrations required. Rankings feature is pure read ope
 
 #### Manual
 
-- [ ] 1.5 Navigate to /rankings → see one section per product type
-- [ ] 1.6 Each section shows correct top N and bottom N tables
-- [ ] 1.7 Rankings match manual calculation from products table
-- [ ] 1.8 Product types with < 5 hives show correct "Top N" / "Bottom N" labels
-- [ ] 1.9 Sign in as different user → see different rankings (RLS verified)
-- [ ] 1.10 Click Rankings nav link → smooth htmx navigation
-- [ ] 1.11 Empty state: user with no products sees appropriate message
+- [x] 1.5 Navigate to /rankings → see one section per product type — cb09f78
+- [x] 1.6 Each section shows correct top N and bottom N tables — cb09f78
+- [x] 1.7 Rankings match manual calculation from products table — cb09f78
+- [x] 1.8 Product types with < 5 hives show correct "Top N" / "Bottom N" labels — cb09f78
+- [x] 1.9 Sign in as different user → see different rankings (RLS verified) — cb09f78
+- [x] 1.10 Click Rankings nav link → smooth htmx navigation — cb09f78
+- [x] 1.11 Empty state: user with no products sees appropriate message — cb09f78

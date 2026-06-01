@@ -19,7 +19,12 @@
 
    Returns:
      [:ok {:rankings {\"Honey\" {:top [...] :bottom [...]} ...}}]
-     [:error {:code ... :message ...}]"
+     [:error {:code ... :message ...}]
+
+   Performance Note:
+     Aggregates ALL products for user without pagination. Designed for small apiary
+     scale (5-50 hives, 100-500 product records). For larger datasets, consider
+     adding pagination or caching in v2."
   [db user-id & {:keys [n] :or {n 5}}]
   (try
     ;; Guard clause
