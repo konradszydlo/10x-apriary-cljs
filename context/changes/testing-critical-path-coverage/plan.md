@@ -357,13 +357,13 @@ Not applicable — all risks are testable via automated tests. Manual verificati
 
 #### Automated
 
-- [ ] 2.1 All ranking tests pass: `clj -M:test -n com.apriary.services.product-rankings-test`
-- [ ] 2.2 Edge case tests verify: <5 hives, zero-quantity, tie handling
-- [ ] 2.3 Multi-product test verifies independent rankings per product type
+- [x] 2.1 All ranking tests pass: `clj -M:test -n com.apriary.services.product-rankings-test`
+- [x] 2.2 Edge case tests verify: <5 hives, zero-quantity, tie handling
+- [x] 2.3 Multi-product test verifies independent rankings per product type
 
 #### Manual
 
-- [ ] 2.4 Review tie scenario test — verify it documents undefined behavior, not enforcing determinism
+- [x] 2.4 Review tie scenario test — verify it documents undefined behavior, not enforcing determinism
 
 ### Phase 3: Schema Validation Tests
 
