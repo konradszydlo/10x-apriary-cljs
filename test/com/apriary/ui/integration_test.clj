@@ -121,8 +121,10 @@
       (is (str/starts-with? (name (first html)) "header"))
       ;; Check for app name
       (is (str/includes? (str html) "Apriary Summary"))
-      ;; Check for New Summary button
-      (is (str/includes? (str html) "New Summary"))
+      ;; Check for navigation links
+      (is (str/includes? (str html) "Summaries"))
+      (is (str/includes? (str html) "Products"))
+      (is (str/includes? (str html) "Rankings"))
       ;; Check for Logout button
       (is (str/includes? (str html) "Logout"))))
 
