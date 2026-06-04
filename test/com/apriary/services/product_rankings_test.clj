@@ -153,4 +153,63 @@
           (is (= (map :hive-number (:top pollen-rankings))
                  ["P-02" "P-03" "P-01"]))
           (is (= (map :total-quantity (:top pollen-rankings))
-                 [40 30 20])))))))
+                 [40 30 20]))))))
+
+(deftest calculate-rankings-rls-test
+  "RLS: users only see rankings for their own products"
+  (with-open [node (test-xtdb-node [])]
+    (let [user-a (java.util.UUID/randomUUID)
+          user-b (java.util.UUID/randomUUID)
+          ;; User A: 3 hives with Honey
+          _ (create-test-products node user-a
+                                  [{:hive-number "A-01" :date "01-01-2025" :product "Honey" :quantity 100 :metric "kg"}
+                                   {:hive-number "A-02" :date "01-01-2025" :product "Honey" :quantity 50 :metric "kg"}
+                                   {:hive-number "A-03" :date "01-01-2025" :product "Honey" :quantity 75 :metric "kg"}])
+          ;; User B: 2 hives with Honey
+          _ (create-test-products node user-b
+                                  [{:hive-number "B-01" :date "01-01-2025" :product "Honey" :quantity 200 :metric "kg"}
+                                   {:hive-number "B-02" :date "01-01-2025" :product "Honey" :quantity 150 :metric "kg"}])
+          db (xt/db node)
+          [status-a result-a] (rankings/calculate-rankings db user-a :n 5)
+          [status-b result-b] (rankings/calculate-rankings db user-b :n 5)]
+
+      ;; User A sees only their hives
+      (is (= status-a :ok))
+      (let [honey-a (get-in result-a [:rankings "Honey"])]
+        (is (= (count (:top honey-a)) 3))
+        (is (= (set (map :hive-number (:top honey-a)))
+               #{"A-01" "A-02" "A-03"})))
+
+      ;; User B sees only their hives
+      (is (= status-b :ok))
+      (let [honey-b (get-in result-b [:rankings "Honey"])]
+        (is (= (count (:top honey-b)) 2))
+        (is (= (set (map :hive-number (:top honey-b)))
+               #{"B-01" "B-02"}))))))
+
+(deftest calculate-rankings-nil-user-id-test
+  "Error: nil user-id returns error"
+  (with-open [node (test-xtdb-node [])]
+    (let [db (xt/db node)
+          [status result] (rankings/calculate-rankings db nil :n 5)]
+      (is (= status :error))
+      (is (= (:code result) :invalid-arguments)))))
+
+(deftest calculate-rankings-invalid-n-parameter-test
+  "Error: invalid n parameter (0, negative, > 100)"
+  (with-open [node (test-xtdb-node [])]
+    (let [user-id (java.util.UUID/randomUUID)
+          db (xt/db node)]
+      (testing "n = 0 returns error"
+        (let [[status result] (rankings/calculate-rankings db user-id :n 0)]
+          (is (= status :error))
+          (is (= (:code result) :invalid-arguments))))
+      (testing "n < 0 returns error"
+        (let [[status result] (rankings/calculate-rankings db user-id :n -5)]
+          (is (= status :error))
+          (is (= (:code result) :invalid-arguments))))
+      (testing "n > 100 returns error"
+        (let [[status result] (rankings/calculate-rankings db user-id :n 101)]
+          (is (= status :error))
+          (is (= (:code result) :invalid-arguments)))))))
+)

@@ -1,7 +1,7 @@
 ---
 change_id: testing-critical-path-coverage
 title: Critical-path coverage for CSV import and rankings
-status: implemented
+status: impl_reviewed
 created: 2026-06-03
 updated: 2026-06-05
 archived_at: null
