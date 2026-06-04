@@ -101,6 +101,7 @@ Example: CSV parsing validation, schema drift prevention.
 
 (deftest csv-validator-matches-schema-test
   "Verify CSV validator output matches Malli schema"
+  ;; schema/module contains {:schema {:product [...], :user [...], ...}}
   (let [product-schema (:product (:schema schema/module))]
     (testing "Valid data passes Malli validation"
       (let [entity {:xt/id (java.util.UUID/randomUUID)
@@ -115,8 +116,10 @@ Example: CSV parsing validation, schema drift prevention.
 ```
 
 **Key conventions:**
-- Use `[status result]` destructuring for service function returns (e.g., `(sut/validate-row ...)`  returns `[:valid {...}]` or `[:invalid "reason"]`)
-- Test both `:valid`/`:invalid` paths
+- Use `[status result]` destructuring for service function returns
+  - Row validation: `[:valid {...}]` or `[:invalid "reason"]`
+  - Service operations: `[:ok {...}]` or `[:error {:code ... :message ...}]`
+- Test both success/failure paths (`:valid`/`:invalid` or `:ok`/`:error`)
 - Include edge cases: empty, nil, boundary values
 - For schema drift tests: verify positive (valid passes) AND negative (invalid fails) paths
 
@@ -168,6 +171,15 @@ See `test/com/apriary/pages/products_test.clj` (handler) and `test/com/apriary/s
 ### 6.3 Adding a multi-user RLS test
 
 Example: Verify user A cannot access user B's product records.
+
+**Helper function** (for creating test fixtures):
+```clojure
+(defn create-test-products
+  "Helper to create product records for testing"
+  [node user-id products]
+  (product-service/create-products-batch node user-id products)
+  (xt/sync node))
+```
 
 **Pattern:**
 ```clojure
