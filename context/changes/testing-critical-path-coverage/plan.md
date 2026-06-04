@@ -382,8 +382,8 @@ Not applicable — all risks are testable via automated tests. Manual verificati
 
 #### Automated
 
-- [x] 4.1 File diff shows §6.1, §6.2, §6.3, §6.5 filled in
+- [x] 4.1 File diff shows §6.1, §6.2, §6.3, §6.5 filled in — 11fd3bd
 
 #### Manual
 
-- [ ] 4.2 Review cookbook entries for clarity and verify file references
+- [x] 4.2 Review cookbook entries for clarity and verify file references — 11fd3bd
