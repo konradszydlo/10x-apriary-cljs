@@ -369,20 +369,20 @@ Not applicable — all risks are testable via automated tests. Manual verificati
 
 #### Automated
 
-- [x] 3.1 Schema validation test passes: `clj -M:test -n com.apriary.services.product-csv-test`
-- [x] 3.2 Test verifies all three metric enum values pass Malli validation
-- [x] 3.3 Test verifies quantity constraint matches CSV validator
-- [x] 3.4 Negative test: invalid metric fails Malli validation
+- [x] 3.1 Schema validation test passes: `clj -M:test -n com.apriary.services.product-csv-test` — 9b586ac
+- [x] 3.2 Test verifies all three metric enum values pass Malli validation — 9b586ac
+- [x] 3.3 Test verifies quantity constraint matches CSV validator — 9b586ac
+- [x] 3.4 Negative test: invalid metric fails Malli validation — 9b586ac
 
 #### Manual
 
-- [x] 3.5 Review test covers both positive and negative paths
+- [x] 3.5 Review test covers both positive and negative paths — 9b586ac
 
 ### Phase 4: Update Test-Plan Cookbook
 
 #### Automated
 
-- [ ] 4.1 File diff shows §6.1, §6.2, §6.3, §6.5 filled in
+- [x] 4.1 File diff shows §6.1, §6.2, §6.3, §6.5 filled in
 
 #### Manual
 

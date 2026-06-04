@@ -90,15 +90,114 @@ How to add new tests in this project. Each sub-section is filled in once the rel
 
 ### 6.1 Adding a unit test
 
-TBD — see §3 Phase 1 (CSV parsing validation, ranking calculation).
+Example: CSV parsing validation, schema drift prevention.
+
+**Pattern:**
+```clojure
+(ns com.apriary.services.foo-test
+  (:require [clojure.test :refer [deftest is testing]]
+            [malli.core :as m]
+            [com.apriary.schema :as schema]))
+
+(deftest csv-validator-matches-schema-test
+  "Verify CSV validator output matches Malli schema"
+  (let [product-schema (:product (:schema schema/module))]
+    (testing "Valid data passes Malli validation"
+      (let [entity {:xt/id (java.util.UUID/randomUUID)
+                    :product/id (java.util.UUID/randomUUID)
+                    :product/quantity 5
+                    :product/metric "kg"}]
+        (is (nil? (m/explain product-schema entity)))))
+    
+    (testing "Invalid data fails Malli validation"
+      (let [entity {:product/quantity 0}] ; Below min
+        (is (some? (m/explain product-schema entity)))))))
+```
+
+**Key conventions:**
+- Use `[status result]` destructuring for service function returns (e.g., `(sut/validate-row ...)`  returns `[:valid {...}]` or `[:invalid "reason"]`)
+- Test both `:valid`/`:invalid` paths
+- Include edge cases: empty, nil, boundary values
+- For schema drift tests: verify positive (valid passes) AND negative (invalid fails) paths
+
+See `test/com/apriary/services/product_csv_test.clj` for field-level validation and schema drift examples.
 
 ### 6.2 Adding an integration test
 
-TBD — see §3 Phase 1 (CSV import round-trip with in-memory XTDB, contract tests).
+Example: Handler end-to-end, service with XTDB.
+
+**Pattern:**
+```clojure
+(ns com.apriary.pages.foo-test
+  (:require [clojure.test :refer [deftest is]]
+            [com.biffweb :refer [test-xtdb-node]]
+            [xtdb.api :as xt]))
+
+(defn make-ctx [node user-id & {:keys [params]}]
+  {:session {:uid user-id}
+   :biff.xtdb/node node
+   :biff/db (xt/db node)
+   :params (or params {})})
+
+(deftest handler-integration-test
+  (with-open [node (test-xtdb-node [])]
+    (let [user-id (java.util.UUID/randomUUID)
+          ctx (make-ctx node user-id :params {:csv "..."})
+          response (handler ctx)]
+      (is (= (:status response) 200))
+      
+      ;; Verify XTDB state
+      (xt/sync node)
+      (let [db (xt/db node)
+            products (xt/q db '{:find [(pull ?p [*])]
+                                :in [user-id]
+                                :where [[?p :product/user-id user-id]]}
+                           user-id)]
+        (is (= (count products) 2))))))
+```
+
+**Key conventions:**
+- Use `(with-open [node (test-xtdb-node [])] ...)` for auto-cleanup
+- Call `(xt/sync node)` before reading XTDB state
+- Verify both response structure AND XTDB persistence
+- Use `make-ctx` helper for handler tests
+- For service tests: pass `node` for writes, `(xt/db node)` for queries
+
+See `test/com/apriary/pages/products_test.clj` (handler) and `test/com/apriary/services/product_rankings_test.clj` (service) for concrete examples.
 
 ### 6.3 Adding a multi-user RLS test
 
-TBD — see §3 Phase 3 (verify user A cannot access user B's product records).
+Example: Verify user A cannot access user B's product records.
+
+**Pattern:**
+```clojure
+(deftest list-products-rls-test
+  (with-open [node (test-xtdb-node [])]
+    (let [user-a (java.util.UUID/randomUUID)
+          user-b (java.util.UUID/randomUUID)
+          _ (create-test-products node user-a [{:hive-number "A-01" ...}])
+          _ (create-test-products node user-b [{:hive-number "B-01" ...}])
+          _ (xt/sync node)
+          db (xt/db node)
+          [_ result-a] (list-products db user-a)
+          [_ result-b] (list-products db user-b)]
+      
+      ;; User A sees only their products
+      (is (= (count (:products result-a)) 1))
+      ;; CRITICAL: Verify EVERY record's user-id, not just count
+      (is (every? #(= (:product/user-id %) user-a) (:products result-a)))
+      
+      ;; User B sees only their products
+      (is (= (count (:products result-b)) 1))
+      (is (every? #(= (:product/user-id %) user-b) (:products result-b))))))
+```
+
+**Key RLS assertion:**
+`(is (every? #(= (:product/user-id %) expected-user) products))`
+
+**Why this matters:** Testing only the count passes even if products from other users leak into the result set. The `every?` pattern verifies ALL records belong to the expected user.
+
+See `test/com/apriary/pages/products_test.clj` and `test/com/apriary/services/product_test.clj:90-112` for concrete examples.
 
 ### 6.4 Adding a test for shared CSV parsing
 
@@ -107,6 +206,11 @@ TBD — see §3 Phase 2 (verify summaries import still works after products pars
 ### 6.5 Per-rollout-phase notes
 
 (Optional. After each phase lands, /10x-implement appends a 2-3 line note here capturing anything surprising the rollout phase taught.)
+
+**Phase 1 (Critical-path coverage):**
+- Round-trip persistence test (CSV → XTDB query) catches silent failure (Risk #1) without simulating transaction rejection — querying XTDB directly proves data was stored, avoiding mock complexity
+- Schema drift test prevents CSV validator and Malli schema from diverging over time — dual validation sources need explicit sync verification
+- Ranking edge cases (<5 hives, zero-quantity, ties) are non-obvious and worth explicit coverage — aggregation logic has subtle behaviors that aren't apparent from happy-path tests
 
 ## 7. What We Deliberately Don't Test
 
