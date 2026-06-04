@@ -3,7 +3,7 @@
 
 (defn app [_ctx]
   {:status 303
-   :headers {"Location" "/summaries"}})
+   :headers {"Location" "/products"}})
 
 (def module
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}

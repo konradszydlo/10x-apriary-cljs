@@ -35,6 +35,12 @@ cljfmt fix
 clj-kondo --lint src test
 ```
 
+#### Testing
+
+```shell
+clj -M:test
+```
+
 #### Security deps scanning
 
 [clj-watson](https://github.com/clj-holmes/clj-watson) checks for vulnerable dependencies.

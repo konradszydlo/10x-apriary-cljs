@@ -344,14 +344,14 @@ Not applicable — all risks are testable via automated tests. Manual verificati
 
 #### Automated
 
-- [x] 1.1 Handler test file exists and all tests pass: `clj -M:test -n com.apriary.pages.products-test`
-- [x] 1.2 Round-trip test (Risk #1) queries XTDB directly and verifies records exist
-- [x] 1.3 100% rejection test (Risk #6) verifies zero products in XTDB
-- [x] 1.4 RLS test verifies every product record has correct `:product/user-id`
+- [x] 1.1 Handler test file exists and all tests pass: `clj -M:test -n com.apriary.pages.products-test` — a351834
+- [x] 1.2 Round-trip test (Risk #1) queries XTDB directly and verifies records exist — a351834
+- [x] 1.3 100% rejection test (Risk #6) verifies zero products in XTDB — a351834
+- [x] 1.4 RLS test verifies every product record has correct `:product/user-id` — a351834
 
 #### Manual
 
-- [ ] 1.5 Review test output for clear failure messages and risk number comments
+- [x] 1.5 Review test output for clear failure messages and risk number comments — a351834
 
 ### Phase 2: Ranking Service Tests
 
