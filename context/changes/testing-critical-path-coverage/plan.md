@@ -357,26 +357,26 @@ Not applicable — all risks are testable via automated tests. Manual verificati
 
 #### Automated
 
-- [x] 2.1 All ranking tests pass: `clj -M:test -n com.apriary.services.product-rankings-test`
-- [x] 2.2 Edge case tests verify: <5 hives, zero-quantity, tie handling
-- [x] 2.3 Multi-product test verifies independent rankings per product type
+- [x] 2.1 All ranking tests pass: `clj -M:test -n com.apriary.services.product-rankings-test` — 5c3eef5
+- [x] 2.2 Edge case tests verify: <5 hives, zero-quantity, tie handling — 5c3eef5
+- [x] 2.3 Multi-product test verifies independent rankings per product type — 5c3eef5
 
 #### Manual
 
-- [x] 2.4 Review tie scenario test — verify it documents undefined behavior, not enforcing determinism
+- [x] 2.4 Review tie scenario test — verify it documents undefined behavior, not enforcing determinism — 5c3eef5
 
 ### Phase 3: Schema Validation Tests
 
 #### Automated
 
-- [ ] 3.1 Schema validation test passes: `clj -M:test -n com.apriary.services.product-csv-test`
-- [ ] 3.2 Test verifies all three metric enum values pass Malli validation
-- [ ] 3.3 Test verifies quantity constraint matches CSV validator
-- [ ] 3.4 Negative test: invalid metric fails Malli validation
+- [x] 3.1 Schema validation test passes: `clj -M:test -n com.apriary.services.product-csv-test`
+- [x] 3.2 Test verifies all three metric enum values pass Malli validation
+- [x] 3.3 Test verifies quantity constraint matches CSV validator
+- [x] 3.4 Negative test: invalid metric fails Malli validation
 
 #### Manual
 
-- [ ] 3.5 Review test covers both positive and negative paths
+- [x] 3.5 Review test covers both positive and negative paths
 
 ### Phase 4: Update Test-Plan Cookbook
 

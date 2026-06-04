@@ -1,6 +1,8 @@
 (ns com.apriary.services.product-csv-test
   (:require [clojure.test :refer [deftest is testing]]
-            [com.apriary.services.product-csv :as sut]))
+            [com.apriary.services.product-csv :as sut]
+            [malli.core :as m]
+            [com.apriary.schema :as schema]))
 
 (deftest validate-product-row-test
   (let [_ ["hive_number" "date" "product" "quantity" "metric"]
@@ -126,3 +128,124 @@
       ;; Check rejected row numbers
       (is (= 3 (:row-number (first (:rejected-rows result)))))
       (is (= 4 (:row-number (second (:rejected-rows result))))))))
+
+(deftest csv-validator-matches-schema-test
+  "Verify CSV validator output matches Malli :product schema (prevents drift)"
+  (let [product-schema (:product (:schema schema/module))
+        user-id (java.util.UUID/randomUUID)
+        now (java.util.Date.)]
+
+    (testing "Valid CSV row output passes Malli validation - metric kg"
+      (let [csv-row {:hive-number "A-01"
+                     :date "23-11-2025"
+                     :product "Honey"
+                     :quantity 5
+                     :metric "kg"}
+            ;; Construct entity as product service would
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :product/id (java.util.UUID/randomUUID)
+                    :product/user-id user-id
+                    :product/hive-number (:hive-number csv-row)
+                    :product/date (:date csv-row)
+                    :product/product (:product csv-row)
+                    :product/quantity (:quantity csv-row)
+                    :product/metric (:metric csv-row)
+                    :product/created-at now
+                    :product/updated-at now}]
+        ;; Malli validation should pass (explain returns nil on success)
+        (is (nil? (m/explain product-schema entity)))))
+
+    (testing "Valid CSV row output passes Malli validation - metric ml"
+      (let [csv-row {:hive-number "B-02"
+                     :date "24-11-2025"
+                     :product "Venom"
+                     :quantity 2
+                     :metric "ml"}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :product/id (java.util.UUID/randomUUID)
+                    :product/user-id user-id
+                    :product/hive-number (:hive-number csv-row)
+                    :product/date (:date csv-row)
+                    :product/product (:product csv-row)
+                    :product/quantity (:quantity csv-row)
+                    :product/metric (:metric csv-row)
+                    :product/created-at now
+                    :product/updated-at now}]
+        (is (nil? (m/explain product-schema entity)))))
+
+    (testing "Valid CSV row output passes Malli validation - metric g"
+      (let [csv-row {:hive-number "C-03"
+                     :date "25-11-2025"
+                     :product "Pollen"
+                     :quantity 100
+                     :metric "g"}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :product/id (java.util.UUID/randomUUID)
+                    :product/user-id user-id
+                    :product/hive-number (:hive-number csv-row)
+                    :product/date (:date csv-row)
+                    :product/product (:product csv-row)
+                    :product/quantity (:quantity csv-row)
+                    :product/metric (:metric csv-row)
+                    :product/created-at now
+                    :product/updated-at now}]
+        (is (nil? (m/explain product-schema entity)))))
+
+    (testing "Negative test: invalid metric fails Malli validation"
+      (let [csv-row {:hive-number "D-04"
+                     :date "26-11-2025"
+                     :product "Honey"
+                     :quantity 50
+                     :metric "liters"} ; Invalid metric
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :product/id (java.util.UUID/randomUUID)
+                    :product/user-id user-id
+                    :product/hive-number (:hive-number csv-row)
+                    :product/date (:date csv-row)
+                    :product/product (:product csv-row)
+                    :product/quantity (:quantity csv-row)
+                    :product/metric (:metric csv-row)
+                    :product/created-at now
+                    :product/updated-at now}]
+        ;; Malli validation should fail (explain returns non-nil)
+        (is (some? (m/explain product-schema entity)))
+        ;; Verify the error is about the metric field
+        (is (contains? (set (map :in (:errors (m/explain product-schema entity))))
+                      [:product/metric]))))
+
+    (testing "Quantity constraint matches CSV validator rule (> 0)"
+      (let [csv-row {:hive-number "E-05"
+                     :date "27-11-2025"
+                     :product "Honey"
+                     :quantity 1  ; Minimum valid quantity
+                     :metric "kg"}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :product/id (java.util.UUID/randomUUID)
+                    :product/user-id user-id
+                    :product/hive-number (:hive-number csv-row)
+                    :product/date (:date csv-row)
+                    :product/product (:product csv-row)
+                    :product/quantity (:quantity csv-row)
+                    :product/metric (:metric csv-row)
+                    :product/created-at now
+                    :product/updated-at now}]
+        ;; Quantity 1 should pass (min 1)
+        (is (nil? (m/explain product-schema entity))))
+
+      ;; Quantity 0 should fail
+      (let [csv-row {:hive-number "E-06"
+                     :date "27-11-2025"
+                     :product "Honey"
+                     :quantity 0  ; Invalid: below min
+                     :metric "kg"}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :product/id (java.util.UUID/randomUUID)
+                    :product/user-id user-id
+                    :product/hive-number (:hive-number csv-row)
+                    :product/date (:date csv-row)
+                    :product/product (:product csv-row)
+                    :product/quantity (:quantity csv-row)
+                    :product/metric (:metric csv-row)
+                    :product/created-at now
+                    :product/updated-at now}]
+        (is (some? (m/explain product-schema entity)))))))
