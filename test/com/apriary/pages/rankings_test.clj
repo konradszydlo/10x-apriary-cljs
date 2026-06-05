@@ -61,4 +61,22 @@
         (is (str/includes? body-b "B-02") "User B should see hive B-02")
         (is (not (str/includes? body-b "A-01")) "User B should NOT see hive A-01")
         (is (not (str/includes? body-b "A-02")) "User B should NOT see hive A-02")
-        (is (not (str/includes? body-b "A-03")) "User B should NOT see hive A-03")))))
+        (is (not (str/includes? body-b "A-03")) "User B should NOT see hive A-03"))
+
+      ;; Verify RLS at database level (not just HTML rendering)
+      (let [db (xt/db node)
+            products-a (xt/q db
+                             '{:find [(pull ?p [*])]
+                               :in [user-id]
+                               :where [[?p :product/user-id user-id]]}
+                             user-a)
+            products-b (xt/q db
+                             '{:find [(pull ?p [*])]
+                               :in [user-id]
+                               :where [[?p :product/user-id user-id]]}
+                             user-b)]
+        ;; RLS assertion: verify EVERY record belongs to correct user
+        (is (every? #(= (:product/user-id (first %)) user-a) products-a)
+            "Database query must return only user-a's products")
+        (is (every? #(= (:product/user-id (first %)) user-b) products-b)
+            "Database query must return only user-b's products")))))

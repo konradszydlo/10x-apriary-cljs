@@ -162,6 +162,7 @@ Document the new test patterns in test-plan.md §6 so future contributors know h
 - Code example from Phase 1 test showing multi-user fixture + assertion on ranking contents
 - Key assertion: verify ALL returned ranking records belong to the expected user, not just the count
 - Differentiates from existing §6.3 CRUD-RLS pattern (which uses `every?` on entity collections)
+- **Note from impl-review**: Phase 1 uses dual assertion strategy: HTML string matching (`str/includes?`) for rendered output PLUS database-level `every?` checks. Document both patterns — handler tests can verify HTML, but must also verify RLS at query level
 
 #### 2. Add XSS Prevention Pattern
 
@@ -241,13 +242,13 @@ No performance impact — tests are local-only integration tests using in-memory
 
 #### Automated
 
-- [x] 1.1 Test passes: `clj -M:test -n com.apriary.pages.rankings-test`
-- [x] 1.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/rankings_test.clj`
-- [x] 1.3 Full test suite still passes: `clj -M:test`
+- [x] 1.1 Test passes: `clj -M:test -n com.apriary.pages.rankings-test` — ca9d9b4
+- [x] 1.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/rankings_test.clj` — ca9d9b4
+- [x] 1.3 Full test suite still passes: `clj -M:test` — ca9d9b4
 
 #### Manual
 
-- [x] 1.4 Review test output to confirm RLS assertion logic matches §6.3 pattern
+- [x] 1.4 Review test output to confirm RLS assertion logic matches §6.3 pattern — ca9d9b4
 
 ### Phase 2: XSS Prevention Tests - Products
 
