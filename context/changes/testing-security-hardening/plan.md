@@ -278,10 +278,10 @@ No performance impact — tests are local-only integration tests using in-memory
 
 #### Automated
 
-- [x] 4.1 File still parses as valid markdown
+- [x] 4.1 File still parses as valid markdown — fa3bd5a
 
 #### Manual
 
-- [x] 4.2 Review §6.3 addition confirms it differentiates rankings-RLS from CRUD-RLS
-- [x] 4.3 Review §6.6 addition explains WHAT to test and WHY
-- [x] 4.4 Verify examples include file:line references to new tests
+- [x] 4.2 Review §6.3 addition confirms it differentiates rankings-RLS from CRUD-RLS — fa3bd5a
+- [x] 4.3 Review §6.6 addition explains WHAT to test and WHY — fa3bd5a
+- [x] 4.4 Verify examples include file:line references to new tests — fa3bd5a
