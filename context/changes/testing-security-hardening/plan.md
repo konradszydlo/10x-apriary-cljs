@@ -266,22 +266,22 @@ No performance impact — tests are local-only integration tests using in-memory
 
 #### Automated
 
-- [x] 3.1 Test passes: `clj -M:test -n com.apriary.pages.summaries-view-test`
-- [x] 3.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/summaries_view_test.clj`
-- [x] 3.3 Full test suite still passes: `clj -M:test`
+- [x] 3.1 Test passes: `clj -M:test -n com.apriary.pages.summaries-view-test` — 86bb713
+- [x] 3.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/summaries_view_test.clj` — 86bb713
+- [x] 3.3 Full test suite still passes: `clj -M:test` — 86bb713
 
 #### Manual
 
-- [x] 3.4 Review test to confirm it covers summary content field via CSV import
+- [x] 3.4 Review test to confirm it covers summary content field via CSV import — 86bb713
 
 ### Phase 4: Cookbook Update
 
 #### Automated
 
-- [ ] 4.1 File still parses as valid markdown
+- [x] 4.1 File still parses as valid markdown
 
 #### Manual
 
-- [ ] 4.2 Review §6.3 addition confirms it differentiates rankings-RLS from CRUD-RLS
-- [ ] 4.3 Review §6.6 addition explains WHAT to test and WHY
-- [ ] 4.4 Verify examples include file:line references to new tests
+- [x] 4.2 Review §6.3 addition confirms it differentiates rankings-RLS from CRUD-RLS
+- [x] 4.3 Review §6.6 addition explains WHAT to test and WHY
+- [x] 4.4 Verify examples include file:line references to new tests

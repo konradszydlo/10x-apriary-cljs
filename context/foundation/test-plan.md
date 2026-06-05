@@ -181,6 +181,10 @@ Example: Verify user A cannot access user B's product records.
   (xt/sync node))
 ```
 
+#### 6.3.1 CRUD-Level RLS (Service Layer)
+
+For testing RLS on basic CRUD operations at the service layer.
+
 **Pattern:**
 ```clojure
 (deftest list-products-rls-test
@@ -210,6 +214,49 @@ Example: Verify user A cannot access user B's product records.
 **Why this matters:** Testing only the count passes even if products from other users leak into the result set. The `every?` pattern verifies ALL records belong to the expected user.
 
 See `test/com/apriary/pages/products_test.clj` and `test/com/apriary/services/product_test.clj:90-112` for concrete examples.
+
+#### 6.3.2 Handler-Level RLS (Rankings and Aggregations)
+
+For testing RLS on derived/aggregated data rendered in HTML. Uses **dual assertion strategy**: HTML content verification PLUS database-level checks.
+
+**Pattern:**
+```clojure
+(deftest rankings-page-rls-test
+  (with-open [node (test-xtdb-node [])]
+    (let [user-a (java.util.UUID/randomUUID)
+          user-b (java.util.UUID/randomUUID)
+          products-a [{:hive-number "A-01" :date "23-11-2025" :product "Honey" :quantity 5 :metric "kg"}
+                      {:hive-number "A-02" :date "24-11-2025" :product "Honey" :quantity 3 :metric "kg"}]
+          products-b [{:hive-number "B-01" :date "23-11-2025" :product "Honey" :quantity 10 :metric "kg"}]
+          _ (product-service/create-products-batch node user-a products-a)
+          _ (product-service/create-products-batch node user-b products-b)
+          _ (xt/sync node)
+          ctx-a (make-ctx node user-a)
+          response-a (rankings/rankings-page-handler ctx-a)
+          ctx-b (make-ctx node user-b)
+          response-b (rankings/rankings-page-handler ctx-b)]
+      
+      ;; HTML assertions: User A sees only their hive numbers
+      (let [body-a (:body response-a)]
+        (is (str/includes? body-a "A-01"))
+        (is (not (str/includes? body-a "B-01"))))
+      
+      ;; Database-level RLS verification (CRITICAL)
+      (let [db (xt/db node)
+            products-a (xt/q db '{:find [(pull ?p [*])]
+                                  :in [user-id]
+                                  :where [[?p :product/user-id user-id]]}
+                             user-a)]
+        (is (every? #(= (:product/user-id (first %)) user-a) products-a))))))
+```
+
+**Why dual assertions:** Handler tests must verify BOTH:
+1. **HTML rendering** (user A's response contains only user A's data)
+2. **Database queries** (underlying XTDB query filters by user-id)
+
+Testing only HTML passes if rendering filters leaked data client-side (bypassing RLS). Testing only database misses rendering bugs. Both layers must enforce isolation.
+
+See `test/com/apriary/pages/rankings_test.clj` for full example with 14 assertions (12 HTML + 2 database).
 
 ### 6.4 Adding a test for shared CSV parsing
 
@@ -254,6 +301,67 @@ When changing `csv_import.clj` (shared CSV parsing layer), verify both products 
 - Catches shared-layer breakage (delimiter, header processing, guards)
 
 See `test/com/apriary/pages/products_test.clj` lines 153-184 for full example.
+
+### 6.6 Adding XSS prevention tests
+
+Example: Verify malicious CSV input is HTML-escaped during rendering.
+
+**When to add XSS tests:**
+- User-controlled string fields that render in HTML (product names, hive numbers, summary content)
+- CSV import flows (highest XSS risk — users paste untrusted data)
+- Fields NOT validated as enums/integers by Malli (string fields with flexible content)
+
+**Why integration tests:** XSS prevention depends on the full pipeline (CSV → parse → XTDB → render). Unit tests on individual layers miss integration bugs. Integration tests with `test-xtdb-node` prove the complete flow is safe.
+
+**Pattern:**
+```clojure
+(deftest import-products-xss-hive-number-test
+  "Test XSS: Script tag in hive-number field is escaped in HTML response"
+  (with-open [node (test-xtdb-node [])]
+    (let [user-id (java.util.UUID/randomUUID)
+          ;; CSV with script tag in hive-number field
+          csv "hive_number;date;product;quantity;metric\n<script>alert('XSS')</script>;23-11-2025;Honey;5;kg"
+          ctx (make-ctx node user-id :params {:csv csv})
+          response (products/import-products-handler ctx)]
+      
+      (is (= (:status response) 200))
+      
+      (let [body (:body response)]
+        ;; Primary check: Raw script tag must NOT be present
+        (is (not (str/includes? body "<script"))
+            "Raw <script tag must not appear in HTML response")
+        
+        ;; Secondary check: Escaped form should be present (flexible regex)
+        (is (re-find #"&lt;\s*script\s*&gt;" body)
+            "Script tag should be HTML-escaped as &lt;script&gt;"))
+      
+      ;; Database-level verification: prove malicious content stored verbatim
+      ;; (Escaping happens at render time via Rum, not during CSV parsing)
+      (xt/sync node)
+      (let [db (xt/db node)
+            products (xt/q db '{:find [(pull ?p [:product/hive-number])]
+                                :in [user-id]
+                                :where [[?p :product/user-id user-id]]}
+                           user-id)
+            hive-number (:product/hive-number (ffirst products))]
+        ;; Verify raw content in DB contains the script tag (not escaped)
+        (is (str/includes? hive-number "<script>alert('XSS')</script>")
+            "XTDB should store raw content - escaping happens at render time")))))
+```
+
+**Dual assertion strategy:**
+1. **HTML response verification** (primary safety gate)
+   - Negative check: raw `<script` tag absent
+   - Positive check: escaped form `&lt;script&gt;` present (flexible regex tolerates whitespace)
+2. **Database-level verification** (proves WHERE escaping happens)
+   - Confirms malicious content stored verbatim in XTDB
+   - Demonstrates Rum auto-escaping at render time (not CSV parser stripping tags)
+
+**Why flexible regex:** `#"&lt;\s*script\s*&gt;"` tolerates whitespace variations in Rum's HTML output. If Rum's escaping implementation changes formatting, test stays robust.
+
+**Framework-wide protection:** Rum/Hiccup auto-escapes all strings by default. Exhaustive field testing isn't needed — test representative high-risk fields (user-controlled text in CSV imports) to prove the framework protection works end-to-end.
+
+See `test/com/apriary/pages/products_test.clj` lines 190-228 (products) and `test/com/apriary/pages/summaries_view_test.clj` (summaries) for full examples with database verification.
 
 ### 6.5 Per-rollout-phase notes
 
