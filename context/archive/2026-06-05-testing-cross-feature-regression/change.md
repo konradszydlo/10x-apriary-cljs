@@ -1,10 +1,10 @@
 ---
 change_id: testing-cross-feature-regression
 title: Testing cross feature regression
-status: implemented
+status: archived
 created: 2026-06-05
 updated: 2026-06-05
-archived_at: null
+archived_at: 2026-06-05T10:35:41Z
 ---
 
 ## Notes
