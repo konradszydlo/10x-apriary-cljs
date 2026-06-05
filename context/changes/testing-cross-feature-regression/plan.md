@@ -355,9 +355,9 @@ Not applicable — adding new tests, no data migration.
 
 #### Automated
 
-- [ ] 1.1 Tests pass: `clj -M:test -n com.apriary.services.csv-import-test`
-- [ ] 1.2 Coverage includes all edge cases: short/long observation, invalid date, missing columns
-- [ ] 1.3 Follows existing test pattern from `product_csv_test.clj`
+- [x] 1.1 Tests pass: `clj -M:test -n com.apriary.services.csv-import-test`
+- [x] 1.2 Coverage includes all edge cases: short/long observation, invalid date, missing columns
+- [x] 1.3 Follows existing test pattern from `product_csv_test.clj`
 
 #### Manual
 
