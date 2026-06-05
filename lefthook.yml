@@ -1,0 +1,7 @@
+pre-commit:
+  commands:
+    format:
+      run: cljfmt fix {staged_files}
+      glob: "*.clj"
+    test:
+      run: clojure -M:test
