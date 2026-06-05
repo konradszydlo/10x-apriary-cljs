@@ -241,13 +241,13 @@ No performance impact — tests are local-only integration tests using in-memory
 
 #### Automated
 
-- [ ] 1.1 Test passes: `clj -M:test -n com.apriary.pages.rankings-test`
-- [ ] 1.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/rankings_test.clj`
-- [ ] 1.3 Full test suite still passes: `clj -M:test`
+- [x] 1.1 Test passes: `clj -M:test -n com.apriary.pages.rankings-test`
+- [x] 1.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/rankings_test.clj`
+- [x] 1.3 Full test suite still passes: `clj -M:test`
 
 #### Manual
 
-- [ ] 1.4 Review test output to confirm RLS assertion logic matches §6.3 pattern
+- [x] 1.4 Review test output to confirm RLS assertion logic matches §6.3 pattern
 
 ### Phase 2: XSS Prevention Tests - Products
 
