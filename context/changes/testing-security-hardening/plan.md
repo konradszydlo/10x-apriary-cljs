@@ -8,7 +8,7 @@ Add integration tests to prove RLS isolation for product rankings (Risk #4) and 
 
 **Existing RLS Coverage:**
 - Products service has multi-user RLS test at service layer (`test/com/apriary/services/product_test.clj:90`)
-- Rankings service has single-user unit test (`test/com/apriary/services/product_rankings_test.clj:158`)
+- Rankings service has multi-user RLS test at service layer (`test/com/apriary/services/product_rankings_test.clj:158`) but no handler-level integration test
 - **Gap**: No handler-level test proving user A cannot see user B's rankings through the `/api/rankings` endpoint
 
 **Existing XSS Protection:**
@@ -96,7 +96,7 @@ Prove that script tags in product CSV fields (hive-number and product name) are 
 1. Script tag in hive-number field is escaped to `&lt;script&gt;`
 2. Script tag in product name field is escaped to `&lt;script&gt;`
 
-**Contract**: Each test creates a CSV payload with `<script>alert('XSS')</script>` in the target field, submits via `import-products-handler`, then asserts the HTML response contains the escaped form `&lt;script&gt;` and does not contain the raw `<script` tag. Pattern follows existing `import-products-rls-test` structure.
+**Contract**: Each test creates a CSV payload with `<script>alert('XSS')</script>` in the target field, submits via `import-products-handler`, then asserts the HTML response does not contain the raw `<script` tag (primary check) and optionally verifies the escaped form is present using flexible regex (e.g., `#"&lt;\s*script\s*&gt;"` to tolerate whitespace variations). Pattern follows existing `import-products-rls-test` structure.
 
 ### Success Criteria:
 
@@ -126,7 +126,7 @@ Prove that script tags in summary content field are HTML-escaped during CSV impo
 
 **Intent**: Prove malicious summary content renders safely by submitting CSV with `<script>alert('XSS')</script>` in the observation field, then verifying the HTML response escapes it.
 
-**Contract**: Test follows existing summary import pattern. Creates CSV with script tag in observation field (padded to meet 50-char minimum), calls the summaries import handler, then retrieves the summary list and asserts the response contains `&lt;script&gt;` in escaped form.
+**Contract**: Test follows existing summary import pattern. Creates CSV with script tag in observation field (padded to meet 50-char minimum), calls the summaries import handler, then retrieves the summary list and asserts the response does not contain raw `<script` tag (primary check) and optionally verifies escaped form is present using flexible regex.
 
 ### Success Criteria:
 
@@ -151,16 +151,17 @@ Document the new test patterns in test-plan.md §6 so future contributors know h
 
 ### Changes Required:
 
-#### 1. Add Multi-User Rankings RLS Pattern
+#### 1. Update Multi-User RLS Pattern for Rankings
 
 **File**: `context/foundation/test-plan.md`
 
-**Intent**: Add §6.3 subsection documenting the pattern for testing RLS on aggregation/ranking endpoints (as opposed to CRUD operations).
+**Intent**: Update existing §6.3 to add a subsection documenting the pattern for testing RLS on aggregation/ranking endpoints (as opposed to CRUD operations that §6.3 currently covers).
 
-**Contract**: Section explains:
+**Contract**: New subsection within §6.3 explains:
 - When to test rankings-style RLS (derived data, not single-record CRUD)
 - Code example from Phase 1 test showing multi-user fixture + assertion on ranking contents
 - Key assertion: verify ALL returned ranking records belong to the expected user, not just the count
+- Differentiates from existing §6.3 CRUD-RLS pattern (which uses `every?` on entity collections)
 
 #### 2. Add XSS Prevention Pattern
 
