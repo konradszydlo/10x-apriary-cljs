@@ -381,11 +381,11 @@ Not applicable — adding new tests, no data migration.
 
 #### Automated
 
-- [x] 3.1 Products import succeeds: status 200, XTDB contains product records
-- [x] 3.2 Summaries parsing succeeds: `[:ok {:valid-rows [...] :rejected-rows []}]`
-- [x] 3.3 Products XTDB query returns expected records
-- [x] 3.4 Summaries valid-rows contain expected observation data
-- [x] 3.5 Test passes: `clj -M:test -n com.apriary.pages.products-test` (if added there)
+- [x] 3.1 Products import succeeds: status 200, XTDB contains product records — 63ee231
+- [x] 3.2 Summaries parsing succeeds: `[:ok {:valid-rows [...] :rejected-rows []}]` — 63ee231
+- [x] 3.3 Products XTDB query returns expected records — 63ee231
+- [x] 3.4 Summaries valid-rows contain expected observation data — 63ee231
+- [x] 3.5 Test passes: `clj -M:test -n com.apriary.pages.products-test` (if added there) — 63ee231
 
 #### Manual
 
@@ -397,9 +397,9 @@ Not applicable — adding new tests, no data migration.
 
 #### Automated
 
-- [ ] 4.1 Cookbook entry renders correctly in markdown
-- [ ] 4.2 Code example is syntactically valid Clojure
-- [ ] 4.3 Pattern references match actual test file paths
+- [x] 4.1 Cookbook entry renders correctly in markdown
+- [x] 4.2 Code example is syntactically valid Clojure
+- [x] 4.3 Pattern references match actual test file paths
 
 #### Manual
 

@@ -213,7 +213,47 @@ See `test/com/apriary/pages/products_test.clj` and `test/com/apriary/services/pr
 
 ### 6.4 Adding a test for shared CSV parsing
 
-TBD — see §3 Phase 2 (verify summaries import still works after products parsing changes).
+When changing `csv_import.clj` (shared CSV parsing layer), verify both products and summaries still work.
+
+**Pattern:**
+```clojure
+(deftest import-products-then-summaries-test
+  "Verify shared parse-csv-string layer works for both features"
+  (with-open [node (test-xtdb-node [])]
+    (let [user-id (java.util.UUID/randomUUID)
+          
+          ;; Step 1: Import products
+          product-csv "hive_number;date;product;quantity;metric\nA-01;23-11-2025;Honey;5;kg"
+          products-ctx (make-ctx node user-id :params {:csv product-csv})
+          products-response (products/import-products-handler products-ctx)]
+      
+      ;; Verify products persisted
+      (is (= (:status products-response) 200))
+      (xt/sync node)
+      (let [db (xt/db node)
+            products (xt/q db '{:find [(pull ?p [*])] :in [user-id] 
+                                :where [[?p :product/user-id user-id]]} user-id)]
+        (is (= (count products) 1)))
+      
+      ;; Step 2: Import summaries (service-level, not handler)
+      (let [summary-csv "observation;hive_number;observation_date;special_feature\nThis is a detailed hive inspection observation with sufficient length for validation;A-01;23-11-2025;Queen active"
+            [status result] (csv-service/process-csv-import summary-csv)]
+        
+        ;; Verify summaries parsing succeeded
+        (is (= :ok status))
+        (is (= 1 (:rows-valid result)))
+        (is (= 0 (:rows-rejected result)))
+        (is (= "This is a detailed hive inspection observation with sufficient length for validation" 
+               (:observation (first (:valid-rows result)))))))))
+```
+
+**Key principles:**
+- Test both features sequentially (not just one)
+- Use service-level call for summaries (avoids AI handler mocking)
+- Verify XTDB persistence for products, parsing success for summaries
+- Catches shared-layer breakage (delimiter, header processing, guards)
+
+See `test/com/apriary/pages/products_test.clj` lines 153-184 for full example.
 
 ### 6.5 Per-rollout-phase notes
 
