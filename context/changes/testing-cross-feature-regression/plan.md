@@ -355,9 +355,9 @@ Not applicable — adding new tests, no data migration.
 
 #### Automated
 
-- [x] 1.1 Tests pass: `clj -M:test -n com.apriary.services.csv-import-test`
-- [x] 1.2 Coverage includes all edge cases: short/long observation, invalid date, missing columns
-- [x] 1.3 Follows existing test pattern from `product_csv_test.clj`
+- [x] 1.1 Tests pass: `clj -M:test -n com.apriary.services.csv-import-test` — a2b278d
+- [x] 1.2 Coverage includes all edge cases: short/long observation, invalid date, missing columns — a2b278d
+- [x] 1.3 Follows existing test pattern from `product_csv_test.clj` — a2b278d
 
 #### Manual
 
@@ -368,9 +368,9 @@ Not applicable — adding new tests, no data migration.
 
 #### Automated
 
-- [ ] 2.1 Schema drift test passes: verify `(is (nil? (m/explain summary-schema entity)))`
-- [ ] 2.2 Negative tests fail correctly: verify `(is (some? (m/explain summary-schema entity)))`
-- [ ] 2.3 Coverage includes: min/max observation length, optional field nil handling
+- [x] 2.1 Schema drift test passes: verify `(is (nil? (m/explain summary-schema entity)))`
+- [x] 2.2 Negative tests fail correctly: verify `(is (some? (m/explain summary-schema entity)))`
+- [x] 2.3 Coverage includes: min/max observation length, optional field nil handling
 
 #### Manual
 

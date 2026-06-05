@@ -1,7 +1,9 @@
 (ns com.apriary.services.csv-import-test
   (:require [clojure.test :refer [deftest is testing]]
             [clojure.string :as str]
-            [com.apriary.services.csv-import :as csv-service]))
+            [com.apriary.services.csv-import :as csv-service]
+            [malli.core :as m]
+            [com.apriary.schema :as schema]))
 
 ;; =============================================================================
 ;; parse-csv-string tests
@@ -293,3 +295,131 @@
         (is (= (:row-number (nth rejected 0)) 2))  ; First data row is row 2 (after header)
         (is (= (:row-number (nth rejected 1)) 3))
         (is (= (:row-number (nth rejected 2)) 4))))))
+
+;; =============================================================================
+;; Schema Drift Prevention
+;; =============================================================================
+
+(deftest csv-validator-matches-schema-test
+  "Verify CSV validator output matches Malli :summary schema (prevents drift)"
+  (let [summary-schema (:summary (:schema schema/module))
+        user-id (java.util.UUID/randomUUID)
+        generation-id (java.util.UUID/randomUUID)
+        now (java.util.Date.)]
+
+    (testing "Valid CSV row output passes Malli validation - all fields"
+      (let [csv-row {:observation (apply str (repeat 60 "Test observation text "))
+                     :hive-number "A-01"
+                     :observation-date "23-11-2025"
+                     :special-feature "Queen active"}
+            ;; Construct entity as handler does (CSV fields -> schema fields)
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :summary/id (java.util.UUID/randomUUID)
+                    :summary/user-id user-id
+                    :summary/generation-id generation-id
+                    :summary/source :ai-full
+                    :summary/created-at now
+                    :summary/updated-at now
+                    :summary/hive-number (:hive-number csv-row)
+                    :summary/observation-date (:observation-date csv-row)
+                    :summary/special-feature (:special-feature csv-row)
+                    :summary/content (:observation csv-row)}]
+        ;; Malli validation should pass (explain returns nil on success)
+        (is (nil? (m/explain summary-schema entity)))))
+
+    (testing "Valid CSV row output passes Malli validation - minimal fields"
+      (let [csv-row {:observation (apply str (repeat 60 "Minimal observation "))
+                     :hive-number nil
+                     :observation-date nil
+                     :special-feature nil}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :summary/id (java.util.UUID/randomUUID)
+                    :summary/user-id user-id
+                    :summary/generation-id generation-id
+                    :summary/source :manual
+                    :summary/created-at now
+                    :summary/updated-at now
+                    :summary/hive-number (:hive-number csv-row)
+                    :summary/observation-date (:observation-date csv-row)
+                    :summary/special-feature (:special-feature csv-row)
+                    :summary/content (:observation csv-row)}]
+        (is (nil? (m/explain summary-schema entity)))))
+
+    (testing "Observation length constraint matches CSV validator - minimum (50 chars)"
+      (let [csv-row {:observation (apply str (repeat 50 "x"))
+                     :hive-number nil
+                     :observation-date nil
+                     :special-feature nil}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :summary/id (java.util.UUID/randomUUID)
+                    :summary/user-id user-id
+                    :summary/generation-id generation-id
+                    :summary/source :manual
+                    :summary/created-at now
+                    :summary/updated-at now
+                    :summary/hive-number (:hive-number csv-row)
+                    :summary/observation-date (:observation-date csv-row)
+                    :summary/special-feature (:special-feature csv-row)
+                    :summary/content (:observation csv-row)}]
+        ;; 50 chars should pass (CSV validator minimum)
+        (is (nil? (m/explain summary-schema entity)))))
+
+    (testing "Observation length constraint matches CSV validator - maximum (10,000 chars)"
+      (let [csv-row {:observation (apply str (repeat 10000 "x"))
+                     :hive-number nil
+                     :observation-date nil
+                     :special-feature nil}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :summary/id (java.util.UUID/randomUUID)
+                    :summary/user-id user-id
+                    :summary/generation-id generation-id
+                    :summary/source :manual
+                    :summary/created-at now
+                    :summary/updated-at now
+                    :summary/hive-number (:hive-number csv-row)
+                    :summary/observation-date (:observation-date csv-row)
+                    :summary/special-feature (:special-feature csv-row)
+                    :summary/content (:observation csv-row)}]
+        ;; 10,000 chars should pass (CSV validator maximum)
+        (is (nil? (m/explain summary-schema entity)))))
+
+    (testing "Negative test: missing required field fails Malli validation"
+      (let [csv-row {:observation (apply str (repeat 60 "Test observation "))
+                     :hive-number "A-01"
+                     :observation-date "23-11-2025"
+                     :special-feature nil}
+            ;; Entity missing :summary/content (required field)
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :summary/id (java.util.UUID/randomUUID)
+                    :summary/user-id user-id
+                    :summary/generation-id generation-id
+                    :summary/source :manual
+                    :summary/created-at now
+                    :summary/updated-at now
+                    :summary/hive-number (:hive-number csv-row)
+                    :summary/observation-date (:observation-date csv-row)
+                    :summary/special-feature (:special-feature csv-row)}]
+        ;; Malli validation should fail (explain returns non-nil)
+        (is (some? (m/explain summary-schema entity)))
+        ;; Verify the error is about the missing content field
+        (is (contains? (set (map :in (:errors (m/explain summary-schema entity))))
+                      [:summary/content]))))
+
+    (testing "Optional fields can be nil"
+      (let [csv-row {:observation (apply str (repeat 60 "Test observation "))
+                     :hive-number nil
+                     :observation-date nil
+                     :special-feature nil}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :summary/id (java.util.UUID/randomUUID)
+                    :summary/user-id user-id
+                    :summary/generation-id nil  ; generation-id is optional
+                    :summary/source :manual
+                    :summary/created-at now
+                    :summary/updated-at now
+                    :summary/hive-number (:hive-number csv-row)
+                    :summary/observation-date (:observation-date csv-row)
+                    :summary/special-feature (:special-feature csv-row)
+                    :summary/content (:observation csv-row)}]
+        ;; All optional fields nil should pass
+        (is (nil? (m/explain summary-schema entity)))))))
