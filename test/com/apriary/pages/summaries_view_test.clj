@@ -35,4 +35,18 @@
 
         ;; Secondary check: Escaped form should be present (flexible regex)
         (is (re-find #"&lt;\s*script\s*&gt;" body)
-            "Script tag should be HTML-escaped as &lt;script&gt;")))))
+            "Script tag should be HTML-escaped as &lt;script&gt;"))
+
+      ;; Database-level verification: prove malicious content stored verbatim
+      ;; (Escaping happens at render time via Rum, not during CSV parsing)
+      (xt/sync node)
+      (let [db (xt/db node)
+            summaries (xt/q db
+                            '{:find [(pull ?s [:summary/content])]
+                              :in [user-id]
+                              :where [[?s :summary/user-id user-id]]}
+                            user-id)
+            summary-content (:summary/content (ffirst summaries))]
+        ;; Verify raw content in DB contains the script tag (not escaped)
+        (is (str/includes? summary-content "<script>alert('XSS')</script>")
+            "XTDB should store raw content with script tags - escaping happens at render time")))))
