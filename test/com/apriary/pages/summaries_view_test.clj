@@ -49,4 +49,7 @@
             summary-content (:summary/content (ffirst summaries))]
         ;; Verify raw content in DB contains the script tag (not escaped)
         (is (str/includes? summary-content "<script>alert('XSS')</script>")
-            "XTDB should store raw content with script tags - escaping happens at render time")))))
+            "XTDB should store raw content with script tags - escaping happens at render time")
+        ;; Verify full content preservation (not just malicious fragment)
+        (is (str/includes? summary-content "padded with extra text to meet fifty char minimum")
+            "Full observation content should be preserved in XTDB")))))

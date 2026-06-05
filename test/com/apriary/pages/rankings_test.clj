@@ -18,6 +18,8 @@
 ;; =============================================================================
 
 (deftest rankings-page-rls-test
+  "Test RLS: User A sees only their own rankings when user B also has products.
+   Uses dual verification strategy: HTML rendering + database-level RLS checks."
   (with-open [node (test-xtdb-node [])]
     (let [user-a (java.util.UUID/randomUUID)
           user-b (java.util.UUID/randomUUID)
