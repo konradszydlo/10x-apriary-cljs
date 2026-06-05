@@ -361,8 +361,8 @@ Not applicable — adding new tests, no data migration.
 
 #### Manual
 
-- [ ] 1.4 Review test output confirms clear failure messages
-- [ ] 1.5 Each test has descriptive docstring referencing behavior tested
+- [x] 1.4 Review test output confirms clear failure messages — a2b278d
+- [x] 1.5 Each test has descriptive docstring referencing behavior tested — a2b278d
 
 ### Phase 2: Summaries Schema Drift Test
 
@@ -374,8 +374,8 @@ Not applicable — adding new tests, no data migration.
 
 #### Manual
 
-- [ ] 2.4 Review test structure matches products schema test pattern
-- [ ] 2.5 Confirm Malli error paths reference correct schema fields (`:summary/content`, etc.)
+- [x] 2.4 Review test structure matches products schema test pattern — 5609526
+- [x] 2.5 Confirm Malli error paths reference correct schema fields (`:summary/content`, etc.) — 5609526
 
 ### Phase 3: Cross-Feature Integration Test
 
@@ -389,20 +389,20 @@ Not applicable — adding new tests, no data migration.
 
 #### Manual
 
-- [ ] 3.6 Review test proves both features work sequentially (not just one)
-- [ ] 3.7 Confirm test would catch shared-layer breakage (e.g., delimiter change)
-- [ ] 3.8 Verify test does NOT depend on AI generation (uses service directly)
+- [x] 3.6 Review test proves both features work sequentially (not just one) — 63ee231
+- [x] 3.7 Confirm test would catch shared-layer breakage (e.g., delimiter change) — 63ee231
+- [x] 3.8 Verify test does NOT depend on AI generation (uses service directly) — 63ee231
 
 ### Phase 4: Update Test-Plan Cookbook
 
 #### Automated
 
-- [x] 4.1 Cookbook entry renders correctly in markdown
-- [x] 4.2 Code example is syntactically valid Clojure
-- [x] 4.3 Pattern references match actual test file paths
+- [x] 4.1 Cookbook entry renders correctly in markdown — 8f9742b
+- [x] 4.2 Code example is syntactically valid Clojure — 8f9742b
+- [x] 4.3 Pattern references match actual test file paths — 8f9742b
 
 #### Manual
 
-- [ ] 4.4 Review cookbook entry is clear and actionable
-- [ ] 4.5 Verify it explains WHEN to use this pattern (changing shared CSV layer)
-- [ ] 4.6 Confirm example code matches what Phase 3 implemented
+- [x] 4.4 Review cookbook entry is clear and actionable — 8f9742b
+- [x] 4.5 Verify it explains WHEN to use this pattern (changing shared CSV layer) — 8f9742b
+- [x] 4.6 Confirm example code matches what Phase 3 implemented — 8f9742b
