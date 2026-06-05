@@ -254,25 +254,25 @@ No performance impact — tests are local-only integration tests using in-memory
 
 #### Automated
 
-- [x] 2.1 Tests pass: `clj -M:test -n com.apriary.pages.products-test`
-- [x] 2.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/products_test.clj`
-- [x] 2.3 Full test suite still passes: `clj -M:test`
+- [x] 2.1 Tests pass: `clj -M:test -n com.apriary.pages.products-test` — a7b9292
+- [x] 2.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/products_test.clj` — a7b9292
+- [x] 2.3 Full test suite still passes: `clj -M:test` — a7b9292
 
 #### Manual
 
-- [x] 2.4 Review test assertions to confirm they check for escaped HTML entities
+- [x] 2.4 Review test assertions to confirm they check for escaped HTML entities — a7b9292
 
 ### Phase 3: XSS Prevention Tests - Summaries
 
 #### Automated
 
-- [ ] 3.1 Test passes: `clj -M:test -n com.apriary.pages.summaries-view-test`
-- [ ] 3.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/summaries_view_test.clj`
-- [ ] 3.3 Full test suite still passes: `clj -M:test`
+- [x] 3.1 Test passes: `clj -M:test -n com.apriary.pages.summaries-view-test`
+- [x] 3.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/summaries_view_test.clj`
+- [x] 3.3 Full test suite still passes: `clj -M:test`
 
 #### Manual
 
-- [ ] 3.4 Review test to confirm it covers summary content field via CSV import
+- [x] 3.4 Review test to confirm it covers summary content field via CSV import
 
 ### Phase 4: Cookbook Update
 
