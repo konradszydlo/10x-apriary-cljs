@@ -7,14 +7,13 @@
 (defn remove-untestable-keys [product]
   (select-keys product [:product/product :product/quantity :product/hive-number :product/metric]))
 
-
 ;; =============================================================================
 ;; create-products-batch tests
 ;; =============================================================================
 
 (deftest create-products-batch-valid-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           products [{:hive-number "A-01"
                      :date "23-11-2025"
                      :product "Honey"
@@ -40,7 +39,7 @@
 
 (deftest create-products-batch-empty-list-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [status result] (product-service/create-products-batch node user-id [])]
 
       (is (= status :error))
@@ -60,7 +59,7 @@
 
 (deftest list-products-basic-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           product-pollen "Pollen"
           product-honey "Honey"
           metric-kg "kg"
@@ -90,8 +89,8 @@
 (deftest list-products-rls-test
   (with-open [node (test-xtdb-node [])]
     (testing "RLS: users only see their own products"
-      (let [user1 (java.util.UUID/randomUUID)
-            user2 (java.util.UUID/randomUUID)
+      (let [user1 (random-uuid)
+            user2 (random-uuid)
             products1 [{:hive-number "A-01" :date "23-11-2025" :product "Honey" :quantity 5 :metric "kg"}
                        {:hive-number "A-02" :date "24-11-2025" :product "Pollen" :quantity 3 :metric "ml"}]
             products2 [{:hive-number "B-01" :date "25-11-2025" :product "Venom" :quantity 2 :metric "ml"}]
@@ -114,7 +113,7 @@
 (deftest list-products-sorted-by-date-test
   (with-open [node (test-xtdb-node [])]
     (testing "Products can be sorted by date descending (newest first)"
-      (let [user-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
             products [{:hive-number "A-01" :date "23-11-2025" :product "Honey" :quantity 5 :metric "kg"}
                       {:hive-number "A-02" :date "25-11-2025" :product "Pollen" :quantity 3 :metric "ml"}
                       {:hive-number "A-03" :date "24-11-2025" :product "Venom" :quantity 2 :metric "ml"}]
@@ -133,7 +132,7 @@
 (deftest list-products-empty-result-test
   (with-open [node (test-xtdb-node [])]
     (testing "New user with no products returns empty list"
-      (let [user-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
             db (xt/db node)
             [status result] (product-service/list-products db user-id)]
 

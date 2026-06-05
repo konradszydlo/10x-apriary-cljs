@@ -17,7 +17,7 @@
       (is (= (str result) uuid-str))))
 
   (testing "UUID from randomUUID"
-    (let [uuid (java.util.UUID/randomUUID)
+    (let [uuid (random-uuid)
           uuid-str (str uuid)
           [status result] (util/parse-uuid uuid-str)]
 
@@ -370,7 +370,7 @@
 
 (deftest not-found-error-test
   (testing "Not found error helper"
-    (let [gen-id (java.util.UUID/randomUUID)
+    (let [gen-id (random-uuid)
           response (util/not-found-error gen-id)]
 
       (is (= (:code response) "NOT_FOUND"))

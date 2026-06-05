@@ -72,9 +72,9 @@
        [:div.flex.items-center.gap-4
         ;; New Summary Button
         #_[:a.inline-flex.items-center.px-4.py-2.border.border-transparent.text-sm.font-medium.rounded-md.text-white.bg-blue-600.hover:bg-blue-700.focus-visible:outline.focus-visible:outline-2.focus-visible:outline-offset-2.focus-visible:outline-blue-600
-         {:href "/summaries-new"
-          :hx-boost "true"}
-         "+ New Summary"]
+           {:href "/summaries-new"
+            :hx-boost "true"}
+           "+ New Summary"]
 
         ;; Logout Form
         (biff/form

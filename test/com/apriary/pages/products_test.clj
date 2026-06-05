@@ -33,7 +33,7 @@
 (deftest import-products-empty-csv-test
   "Test that empty CSV param returns 400"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ctx (make-ctx node user-id :params {:csv ""})
           response (products/import-products-handler ctx)]
 
@@ -44,7 +44,7 @@
   ; Risk #1
   "Test valid CSV import → verify XTDB persistence via direct query"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           csv "hive_number;date;product;quantity;metric\nA-01;23-11-2025;Honey;5;kg\nA-02;24-11-2025;Pollen;3;ml"
           ctx (make-ctx node user-id :params {:csv csv})
           response (products/import-products-handler ctx)]
@@ -77,7 +77,7 @@
   ; Risk #6
   "Test 100% rejection → success response, zero products in XTDB"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ;; Invalid: missing required fields, invalid quantity
           csv "hive_number;date;product;quantity;metric\n;;;-1;kg\nA-02;;Honey;abc;ml"
           ctx (make-ctx node user-id :params {:csv csv})
@@ -96,7 +96,7 @@
   ; Risk #6
   "Test mixed valid/invalid → verify rejected rows in response body"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ;; Row 1: valid
           ;; Row 2: invalid quantity
           ;; Row 3: invalid metric
@@ -122,8 +122,8 @@
 (deftest import-products-rls-test
   "Test RLS: User A imports, user B cannot see those products"
   (with-open [node (test-xtdb-node [])]
-    (let [user-a (java.util.UUID/randomUUID)
-          user-b (java.util.UUID/randomUUID)
+    (let [user-a (random-uuid)
+          user-b (random-uuid)
           csv "hive_number;date;product;quantity;metric\nA-01;23-11-2025;Honey;5;kg"
           ctx-a (make-ctx node user-a :params {:csv csv})
           response-a (products/import-products-handler ctx-a)]
@@ -154,7 +154,7 @@
   ; Risk #3
   "Verify shared parse-csv-string layer works for both features sequentially"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
 
           ;; Step 1: Import products
           product-csv "hive_number;date;product;quantity;metric\nA-01;23-11-2025;Honey;5;kg"
@@ -190,7 +190,7 @@
 (deftest import-products-xss-hive-number-test
   "Test XSS: Script tag in hive-number field is escaped in HTML response"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ;; CSV with script tag in hive-number field
           csv "hive_number;date;product;quantity;metric\n<script>alert('XSS')</script>;23-11-2025;Honey;5;kg"
           ctx (make-ctx node user-id :params {:csv csv})
@@ -210,7 +210,7 @@
 (deftest import-products-xss-product-name-test
   "Test XSS: Script tag in product name field is escaped in HTML response"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ;; CSV with script tag in product name field
           csv "hive_number;date;product;quantity;metric\nA-01;23-11-2025;<script>alert('XSS')</script>;5;kg"
           ctx (make-ctx node user-id :params {:csv csv})

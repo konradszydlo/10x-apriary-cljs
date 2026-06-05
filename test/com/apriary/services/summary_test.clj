@@ -26,7 +26,7 @@
 
 (deftest create-manual-summary-valid-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           content (apply str (repeat 100 "test "))
           [status result] (summary-service/create-manual-summary
                            node user-id
@@ -50,7 +50,7 @@
 (deftest create-manual-summary-minimal-test
   (with-open [node (test-xtdb-node [])]
     (testing "Only content field required"
-      (let [user-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
             content (apply str (repeat 50 "x"))
             [status result] (summary-service/create-manual-summary
                              node user-id
@@ -64,7 +64,7 @@
 
 (deftest create-manual-summary-invalid-content-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)]
+    (let [user-id (random-uuid)]
 
       (testing "content too short (less than 50 chars)"
         (let [[status result] (summary-service/create-manual-summary
@@ -99,7 +99,7 @@
 
 (deftest create-manual-summary-invalid-date-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           content (apply str (repeat 50 "x"))]
 
       (testing "invalid date format"
@@ -117,7 +117,7 @@
 
 (deftest list-summaries-basic-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [s1 _] (create-test-summary node user-id)
           [s2 _] (create-test-summary node user-id)
           _ (xt/sync node)
@@ -135,8 +135,8 @@
 (deftest list-summaries-rls-test
   (with-open [node (test-xtdb-node [])]
     (testing "RLS: users only see their own summaries"
-      (let [user1 (java.util.UUID/randomUUID)
-            user2 (java.util.UUID/randomUUID)
+      (let [user1 (random-uuid)
+            user2 (random-uuid)
             [s1 _] (create-test-summary node user1)
             [s2 _] (create-test-summary node user1)
             [s3 _] (create-test-summary node user2)
@@ -153,7 +153,7 @@
 
 (deftest list-summaries-pagination-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           _ (dorun (for [_i (range 5)]
                      (create-test-summary node user-id)))
           _ (xt/sync node)
@@ -170,8 +170,8 @@
 (deftest list-summaries-source-filter-test
   (with-open [node (test-xtdb-node [])]
     (testing "Filter by source type"
-      (let [user-id (java.util.UUID/randomUUID)
-            gen-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
+            gen-id (random-uuid)
 
             ;; Create manual summary
             [s1 _] (create-test-summary node user-id)
@@ -179,8 +179,8 @@
             ;; Create AI summaries manually for testing
             _ (xt/submit-tx node
                             [[:xtdb.api/put
-                              {:xt/id (java.util.UUID/randomUUID)
-                               :summary/id (java.util.UUID/randomUUID)
+                              {:xt/id (random-uuid)
+                               :summary/id (random-uuid)
                                :summary/user-id user-id
                                :summary/generation-id gen-id
                                :summary/source :ai-full
@@ -210,7 +210,7 @@
 
 (deftest get-summary-by-id-found-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [status created] (create-test-summary node user-id)
           _ (xt/sync node)
           db (xt/db node)
@@ -224,8 +224,8 @@
 
 (deftest get-summary-by-id-not-found-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
-          fake-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
+          fake-id (random-uuid)
           [status result] (summary-service/get-summary-by-id (xt/db node) fake-id user-id)]
 
       (is (= status :error))
@@ -234,8 +234,8 @@
 (deftest get-summary-by-id-rls-violation-test
   (with-open [node (test-xtdb-node [])]
     (testing "RLS: cannot access another user's summary"
-      (let [owner-id (java.util.UUID/randomUUID)
-            other-id (java.util.UUID/randomUUID)
+      (let [owner-id (random-uuid)
+            other-id (random-uuid)
             [status created] (create-test-summary node owner-id)
             _ (xt/sync node)
             db (xt/db node)
@@ -253,7 +253,7 @@
 
 (deftest update-summary-content-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [status created] (create-test-summary node user-id)
           _ (xt/sync node)
           summary-id (:summary/id created)
@@ -271,7 +271,7 @@
 (deftest update-summary-metadata-only-test
   (with-open [node (test-xtdb-node [])]
     (testing "Updating only metadata doesn't change source"
-      (let [user-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
             [status created] (create-test-summary node user-id)
             _ (xt/sync node)
             summary-id (:summary/id created)
@@ -290,11 +290,11 @@
 (deftest update-summary-source-transition-test
   (with-open [node (test-xtdb-node [])]
     (testing "Updating content of ai-full changes source to ai-partial"
-      (let [user-id (java.util.UUID/randomUUID)
-            gen-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
+            gen-id (random-uuid)
 
             ;; Create AI-full summary manually
-            ai-summary-id (java.util.UUID/randomUUID)
+            ai-summary-id (random-uuid)
             _ (xt/submit-tx node
                             [[:xtdb.api/put
                               {:xt/id ai-summary-id
@@ -318,7 +318,7 @@
 
 (deftest update-summary-invalid-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [_status created] (create-test-summary node user-id)
           _ (xt/sync node)
           summary-id (:summary/id created)]
@@ -346,8 +346,8 @@
 
 (deftest update-summary-not-found-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
-          fake-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
+          fake-id (random-uuid)
           [status result] (summary-service/update-summary
                            node fake-id user-id
                            {:hive-number "X-99"})]
@@ -358,8 +358,8 @@
 (deftest update-summary-rls-violation-test
   (with-open [node (test-xtdb-node [])]
     (testing "RLS: cannot update another user's summary"
-      (let [owner-id (java.util.UUID/randomUUID)
-            other-id (java.util.UUID/randomUUID)
+      (let [owner-id (random-uuid)
+            other-id (random-uuid)
             [status created] (create-test-summary node owner-id)
             _ (xt/sync node)
             summary-id (:summary/id created)
@@ -377,7 +377,7 @@
 
 (deftest delete-summary-success-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [status created] (create-test-summary node user-id)
           _ (xt/sync node)
           summary-id (:summary/id created)
@@ -393,8 +393,8 @@
 
 (deftest delete-summary-not-found-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
-          fake-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
+          fake-id (random-uuid)
           [status result] (summary-service/delete-summary node fake-id user-id)]
 
       (is (= status :error))
@@ -403,8 +403,8 @@
 (deftest delete-summary-rls-violation-test
   (with-open [node (test-xtdb-node [])]
     (testing "RLS: cannot delete another user's summary"
-      (let [owner-id (java.util.UUID/randomUUID)
-            other-id (java.util.UUID/randomUUID)
+      (let [owner-id (random-uuid)
+            other-id (random-uuid)
             [status created] (create-test-summary node owner-id)
             _ (xt/sync node)
             summary-id (:summary/id created)
@@ -421,8 +421,8 @@
 (deftest accept-summary-ai-full-test
   (with-open [node (test-xtdb-node [])]
     (testing "Accepting ai-full summary increments unedited counter"
-      (let [user-id (java.util.UUID/randomUUID)
-            gen-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
+            gen-id (random-uuid)
 
             ;; Create generation
             _ (xt/submit-tx node
@@ -439,7 +439,7 @@
                                :generation/updated-at (java.time.Instant/now)}]])
 
             ;; Create AI-full summary
-            summary-id (java.util.UUID/randomUUID)
+            summary-id (random-uuid)
             _ (xt/submit-tx node
                             [[:xtdb.api/put
                               {:xt/id summary-id
@@ -465,8 +465,8 @@
 (deftest accept-summary-ai-partial-test
   (with-open [node (test-xtdb-node [])]
     (testing "Accepting ai-partial summary increments edited counter"
-      (let [user-id (java.util.UUID/randomUUID)
-            gen-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
+            gen-id (random-uuid)
 
             ;; Create generation
             _ (xt/submit-tx node
@@ -483,7 +483,7 @@
                                :generation/updated-at (java.time.Instant/now)}]])
 
             ;; Create AI-partial summary
-            summary-id (java.util.UUID/randomUUID)
+            summary-id (random-uuid)
             _ (xt/submit-tx node
                             [[:xtdb.api/put
                               {:xt/id summary-id
@@ -508,7 +508,7 @@
 (deftest accept-summary-manual-rejected-test
   (with-open [node (test-xtdb-node [])]
     (testing "Cannot accept manual summary"
-      (let [user-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
             [status created] (create-test-summary node user-id)
             _ (xt/sync node)
             summary-id (:summary/id created)
@@ -522,8 +522,8 @@
 (deftest accept-summary-already-accepted-test
   (with-open [node (test-xtdb-node [])]
     (testing "Cannot accept already-accepted summary"
-      (let [user-id (java.util.UUID/randomUUID)
-            gen-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
+            gen-id (random-uuid)
 
             ;; Create generation
             _ (xt/submit-tx node
@@ -540,7 +540,7 @@
                                :generation/updated-at (java.time.Instant/now)}]])
 
             ;; Create AI summary with accepted-at already set
-            summary-id (java.util.UUID/randomUUID)
+            summary-id (random-uuid)
             _ (xt/submit-tx node
                             [[:xtdb.api/put
                               {:xt/id summary-id
@@ -562,8 +562,8 @@
 
 (deftest accept-summary-not-found-test
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
-          fake-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
+          fake-id (random-uuid)
           [status result] (summary-service/accept-summary node fake-id user-id)]
 
       (is (= status :error))
@@ -572,9 +572,9 @@
 (deftest accept-summary-rls-violation-test
   (with-open [node (test-xtdb-node [])]
     (testing "RLS: cannot accept another user's summary"
-      (let [owner-id (java.util.UUID/randomUUID)
-            other-id (java.util.UUID/randomUUID)
-            gen-id (java.util.UUID/randomUUID)
+      (let [owner-id (random-uuid)
+            other-id (random-uuid)
+            gen-id (random-uuid)
 
             ;; Create generation for owner
             _ (xt/submit-tx node
@@ -591,7 +591,7 @@
                                :generation/updated-at (java.time.Instant/now)}]])
 
             ;; Create AI summary for owner
-            summary-id (java.util.UUID/randomUUID)
+            summary-id (random-uuid)
             _ (xt/submit-tx node
                             [[:xtdb.api/put
                               {:xt/id summary-id

@@ -20,7 +20,7 @@
 (deftest import-csv-xss-observation-field-test
   "Test XSS: Script tag in observation field is escaped in HTML response"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ;; CSV with script tag in observation field (padded to meet 50-char minimum)
           csv "observation;hive_number;observation_date;special_feature\n<script>alert('XSS')</script> padded with extra text to meet fifty char minimum;A-01;23-11-2025;Queen active"
           ctx (make-ctx node user-id :body-params {:csv csv})

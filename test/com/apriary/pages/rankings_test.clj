@@ -21,8 +21,8 @@
   "Test RLS: User A sees only their own rankings when user B also has products.
    Uses dual verification strategy: HTML rendering + database-level RLS checks."
   (with-open [node (test-xtdb-node [])]
-    (let [user-a (java.util.UUID/randomUUID)
-          user-b (java.util.UUID/randomUUID)
+    (let [user-a (random-uuid)
+          user-b (random-uuid)
 
           ;; Create products for user A
           products-a [{:hive-number "A-01" :date "23-11-2025" :product "Honey" :quantity 5 :metric "kg"}

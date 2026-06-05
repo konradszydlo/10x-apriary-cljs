@@ -303,8 +303,8 @@
 (deftest csv-validator-matches-schema-test
   "Verify CSV validator output matches Malli :summary schema (prevents drift)"
   (let [summary-schema (:summary (:schema schema/module))
-        user-id (java.util.UUID/randomUUID)
-        generation-id (java.util.UUID/randomUUID)
+        user-id (random-uuid)
+        generation-id (random-uuid)
         now (java.util.Date.)]
 
     (testing "Valid CSV row output passes Malli validation - all fields"
@@ -313,8 +313,8 @@
                      :observation-date "23-11-2025"
                      :special-feature "Queen active"}
             ;; Construct entity as handler does (CSV fields -> schema fields)
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :summary/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :summary/id (random-uuid)
                     :summary/user-id user-id
                     :summary/generation-id generation-id
                     :summary/source :ai-full
@@ -332,8 +332,8 @@
                      :hive-number nil
                      :observation-date nil
                      :special-feature nil}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :summary/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :summary/id (random-uuid)
                     :summary/user-id user-id
                     :summary/generation-id generation-id
                     :summary/source :manual
@@ -351,8 +351,8 @@
                      :hive-number nil
                      :observation-date nil
                      :special-feature nil}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :summary/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :summary/id (random-uuid)
                     :summary/user-id user-id
                     :summary/generation-id generation-id
                     :summary/source :manual
@@ -369,8 +369,8 @@
                      :hive-number nil
                      :observation-date nil
                      :special-feature nil}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :summary/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :summary/id (random-uuid)
                     :summary/user-id user-id
                     :summary/generation-id generation-id
                     :summary/source :manual
@@ -388,8 +388,8 @@
                      :hive-number nil
                      :observation-date nil
                      :special-feature nil}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :summary/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :summary/id (random-uuid)
                     :summary/user-id user-id
                     :summary/generation-id generation-id
                     :summary/source :manual
@@ -406,8 +406,8 @@
                      :hive-number nil
                      :observation-date nil
                      :special-feature nil}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :summary/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :summary/id (random-uuid)
                     :summary/user-id user-id
                     :summary/generation-id generation-id
                     :summary/source :manual
@@ -425,8 +425,8 @@
                      :observation-date "23-11-2025"
                      :special-feature nil}
             ;; Entity missing :summary/content (required field)
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :summary/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :summary/id (random-uuid)
                     :summary/user-id user-id
                     :summary/generation-id generation-id
                     :summary/source :manual
@@ -439,15 +439,15 @@
         (is (some? (m/explain summary-schema entity)))
         ;; Verify the error is about the missing content field
         (is (contains? (set (map :in (:errors (m/explain summary-schema entity))))
-                      [:summary/content]))))
+                       [:summary/content]))))
 
     (testing "Optional fields can be nil"
       (let [csv-row {:observation (apply str (repeat 60 "Test observation "))
                      :hive-number nil
                      :observation-date nil
                      :special-feature nil}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :summary/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :summary/id (random-uuid)
                     :summary/user-id user-id
                     :summary/generation-id nil  ; generation-id is optional
                     :summary/source :manual

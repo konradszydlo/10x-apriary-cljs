@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cljfmt fix",
+            "timeout": 10000
+          },
+          {
+            "type": "command",
+            "command": "clj -M:test",
+            "timeout": 10000
+          }
+
+        ]
+      }
+    ]
+  }
+}

@@ -94,8 +94,8 @@
               (let [valid-rows (:valid-rows validate-result)
                     rejected-rows (:rejected-rows validate-result)
                     [store-status store-result] (if (seq valid-rows)
-                                                   (product-service/create-products-batch node user-id valid-rows)
-                                                   [:ok {:count 0}])]
+                                                  (product-service/create-products-batch node user-id valid-rows)
+                                                  [:ok {:count 0}])]
 
                 (if (= store-status :error)
                   ;; Database error
@@ -152,4 +152,4 @@
   {:routes [["/products" {:middleware [mid/wrap-signed-in]}
              ["" {:get products-page-handler}]]]
    :api-routes [["/api/products-import" {:middleware [mid/wrap-signed-in]
-                                          :post import-products-handler}]]})
+                                         :post import-products-handler}]]})

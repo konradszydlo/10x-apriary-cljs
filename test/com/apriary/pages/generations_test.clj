@@ -30,7 +30,7 @@
 (deftest list-generations-basic-test
   "Test basic generation listing"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           _ (gen-service/create-generation node user-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           ctx (make-ctx node user-id)
@@ -46,7 +46,7 @@
 (deftest list-generations-with-pagination-test
   "Test generation listing with pagination parameters"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           _ (dorun (for [i (range 5)]
                      (gen-service/create-generation node user-id (str "model-" i) (+ 10 i) 2500)))
           _ (xt/sync node)
@@ -63,7 +63,7 @@
 (deftest list-generations-with-invalid-limit-test
   "Test that invalid limit parameter returns error"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ctx (make-ctx node user-id :params {:limit "999"})
           response (generations/list-generations-handler ctx)]
 
@@ -73,7 +73,7 @@
 (deftest list-generations-with-model-filter-test
   "Test generation listing with model filter"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           _ (gen-service/create-generation node user-id "gpt-4-turbo" 10 2500)
           _ (gen-service/create-generation node user-id "claude-3" 15 3000)
           _ (gen-service/create-generation node user-id "gpt-4-turbo" 20 4000)
@@ -89,8 +89,8 @@
 (deftest list-generations-rls-test
   "Test that users only see their own generations"
   (with-open [node (test-xtdb-node [])]
-    (let [user1 (java.util.UUID/randomUUID)
-          user2 (java.util.UUID/randomUUID)
+    (let [user1 (random-uuid)
+          user2 (random-uuid)
           _ (gen-service/create-generation node user1 "gpt-4-turbo" 10 2500)
           _ (gen-service/create-generation node user1 "claude-3" 15 3000)
           _ (gen-service/create-generation node user2 "gpt-4-turbo" 20 4000)
@@ -111,7 +111,7 @@
 (deftest get-generation-unauthorized-test
   "Test that unauthenticated requests are rejected"
   (with-open [node (test-xtdb-node [])]
-    (let [ctx (assoc (make-ctx node nil :path-params {:id (str (java.util.UUID/randomUUID))})
+    (let [ctx (assoc (make-ctx node nil :path-params {:id (str (random-uuid))})
                      :session {})
           response (generations/get-generation-handler ctx)]
       (is (= (:status response) 401))
@@ -120,7 +120,7 @@
 (deftest get-generation-invalid-uuid-test
   "Test that invalid UUID format returns error"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ctx (make-ctx node user-id :path-params {:id "not-a-uuid"})
           response (generations/get-generation-handler ctx)]
 
@@ -130,7 +130,7 @@
 (deftest get-generation-found-test
   "Test retrieving an existing generation"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [_ created] (gen-service/create-generation node user-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           gen-id (:generation/id created)
@@ -145,8 +145,8 @@
 (deftest get-generation-not-found-test
   "Test that non-existent generation returns 404"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
-          fake-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
+          fake-id (random-uuid)
           ctx (make-ctx node user-id :path-params {:id (str fake-id)})
           response (generations/get-generation-handler ctx)]
 
@@ -156,8 +156,8 @@
 (deftest get-generation-rls-violation-test
   "Test that users cannot access other users' generations"
   (with-open [node (test-xtdb-node [])]
-    (let [owner-id (java.util.UUID/randomUUID)
-          other-id (java.util.UUID/randomUUID)
+    (let [owner-id (random-uuid)
+          other-id (random-uuid)
           [_ created] (gen-service/create-generation node owner-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           gen-id (:generation/id created)
@@ -175,7 +175,7 @@
 (deftest bulk-accept-unauthorized-test
   "Test that unauthenticated requests are rejected"
   (with-open [node (test-xtdb-node [])]
-    (let [ctx (assoc (make-ctx node nil :path-params {:id (str (java.util.UUID/randomUUID))})
+    (let [ctx (assoc (make-ctx node nil :path-params {:id (str (random-uuid))})
                      :session {})
           response (generations/bulk-accept-generation-handler ctx)]
       (is (= (:status response) 401))
@@ -184,7 +184,7 @@
 (deftest bulk-accept-invalid-uuid-test
   "Test that invalid UUID format returns error"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ctx (make-ctx node user-id :path-params {:id "not-a-uuid"})
           response (generations/bulk-accept-generation-handler ctx)]
 
@@ -194,8 +194,8 @@
 (deftest bulk-accept-not-found-test
   "Test that non-existent generation returns 404"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
-          fake-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
+          fake-id (random-uuid)
           ctx (make-ctx node user-id :path-params {:id (str fake-id)})
           response (generations/bulk-accept-generation-handler ctx)]
 
@@ -205,8 +205,8 @@
 (deftest bulk-accept-rls-violation-test
   "Test that users cannot accept summaries for other users' generations"
   (with-open [node (test-xtdb-node [])]
-    (let [owner-id (java.util.UUID/randomUUID)
-          other-id (java.util.UUID/randomUUID)
+    (let [owner-id (random-uuid)
+          other-id (random-uuid)
           [_ created] (gen-service/create-generation node owner-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           gen-id (:generation/id created)
@@ -219,7 +219,7 @@
 (deftest bulk-accept-valid-test
   "Test valid bulk acceptance with no summaries"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [_ created] (gen-service/create-generation node user-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           gen-id (:generation/id created)
@@ -237,7 +237,7 @@
 (deftest bulk-accept-response-format-test
   "Test that response includes all required fields"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           [_ created] (gen-service/create-generation node user-id "gpt-4-turbo" 10 2500)
           _ (xt/sync node)
           gen-id (:generation/id created)

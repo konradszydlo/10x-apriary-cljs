@@ -132,7 +132,7 @@
 (deftest csv-validator-matches-schema-test
   "Verify CSV validator output matches Malli :product schema (prevents drift)"
   (let [product-schema (:product (:schema schema/module))
-        user-id (java.util.UUID/randomUUID)
+        user-id (random-uuid)
         now (java.util.Date.)]
 
     (testing "Valid CSV row output passes Malli validation - metric kg"
@@ -142,8 +142,8 @@
                      :quantity 5
                      :metric "kg"}
             ;; Construct entity as product service would
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :product/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :product/id (random-uuid)
                     :product/user-id user-id
                     :product/hive-number (:hive-number csv-row)
                     :product/date (:date csv-row)
@@ -161,8 +161,8 @@
                      :product "Venom"
                      :quantity 2
                      :metric "ml"}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :product/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :product/id (random-uuid)
                     :product/user-id user-id
                     :product/hive-number (:hive-number csv-row)
                     :product/date (:date csv-row)
@@ -179,8 +179,8 @@
                      :product "Pollen"
                      :quantity 100
                      :metric "g"}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :product/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :product/id (random-uuid)
                     :product/user-id user-id
                     :product/hive-number (:hive-number csv-row)
                     :product/date (:date csv-row)
@@ -197,8 +197,8 @@
                      :product "Honey"
                      :quantity 50
                      :metric "liters"} ; Invalid metric
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :product/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :product/id (random-uuid)
                     :product/user-id user-id
                     :product/hive-number (:hive-number csv-row)
                     :product/date (:date csv-row)
@@ -211,7 +211,7 @@
         (is (some? (m/explain product-schema entity)))
         ;; Verify the error is about the metric field
         (is (contains? (set (map :in (:errors (m/explain product-schema entity))))
-                      [:product/metric]))))
+                       [:product/metric]))))
 
     (testing "Quantity constraint matches CSV validator rule (> 0)"
       (let [csv-row {:hive-number "E-05"
@@ -219,8 +219,8 @@
                      :product "Honey"
                      :quantity 1  ; Minimum valid quantity
                      :metric "kg"}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :product/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :product/id (random-uuid)
                     :product/user-id user-id
                     :product/hive-number (:hive-number csv-row)
                     :product/date (:date csv-row)
@@ -238,8 +238,8 @@
                      :product "Honey"
                      :quantity 0  ; Invalid: below min
                      :metric "kg"}
-            entity {:xt/id (java.util.UUID/randomUUID)
-                    :product/id (java.util.UUID/randomUUID)
+            entity {:xt/id (random-uuid)
+                    :product/id (random-uuid)
                     :product/user-id user-id
                     :product/hive-number (:hive-number csv-row)
                     :product/date (:date csv-row)

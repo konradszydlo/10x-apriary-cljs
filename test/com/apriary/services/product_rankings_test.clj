@@ -18,15 +18,15 @@
 (deftest calculate-rankings-basic-test
   "Happy path: 10 hives, verify top 5 and bottom 5 are correct"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ;; Create 10 hives with varying honey quantities (kg)
           products (mapv (fn [i]
-                          {:hive-number (str "H-" (format "%02d" (inc i)))
-                           :date "01-01-2025"
-                           :product "Honey"
-                           :quantity (* (inc i) 10) ; 10, 20, 30, ..., 100
-                           :metric "kg"})
-                        (range 10))
+                           {:hive-number (str "H-" (format "%02d" (inc i)))
+                            :date "01-01-2025"
+                            :product "Honey"
+                            :quantity (* (inc i) 10) ; 10, 20, 30, ..., 100
+                            :metric "kg"})
+                         (range 10))
           _ (create-test-products node user-id products)
           db (xt/db node)
           [status result] (rankings/calculate-rankings db user-id :n 5)]
@@ -51,7 +51,7 @@
   ; Risk #5 edge case
   "3 hives total → verify top/bottom both return 3 entries, not 5"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           products [{:hive-number "A-01" :date "01-01-2025" :product "Honey" :quantity 30 :metric "kg"}
                     {:hive-number "A-02" :date "01-01-2025" :product "Honey" :quantity 10 :metric "kg"}
                     {:hive-number "A-03" :date "01-01-2025" :product "Honey" :quantity 20 :metric "kg"}]
@@ -73,7 +73,7 @@
   ; Risk #5 edge case
   "Hive with 0 total quantity → verify it appears in bottom rankings"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ;; Create one hive with 0 quantity, others with positive
           products [{:hive-number "Z-00" :date "01-01-2025" :product "Honey" :quantity 0 :metric "kg"}
                     {:hive-number "A-01" :date "01-01-2025" :product "Honey" :quantity 50 :metric "kg"}
@@ -97,7 +97,7 @@
   "Two hives with identical totals → verify both appear in results (order may vary)"
   (testing "Tie-breaking is undefined (relies on XTDB result order)"
     (with-open [node (test-xtdb-node [])]
-      (let [user-id (java.util.UUID/randomUUID)
+      (let [user-id (random-uuid)
             ;; Create two hives with identical totals (50 kg each)
             products [{:hive-number "TIE-A" :date "01-01-2025" :product "Honey" :quantity 50 :metric "kg"}
                       {:hive-number "TIE-B" :date "01-01-2025" :product "Honey" :quantity 50 :metric "kg"}
@@ -116,13 +116,13 @@
 
           ;; Both should have the same quantity
           (is (every? #(= (:total-quantity %) 50)
-                     (filter #(#{"TIE-A" "TIE-B"} (:hive-number %))
-                            (:top honey-rankings)))))))))
+                      (filter #(#{"TIE-A" "TIE-B"} (:hive-number %))
+                              (:top honey-rankings)))))))))
 
 (deftest calculate-rankings-multi-product-test
   "Multiple product types → verify each has independent top/bottom rankings"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           ;; Create products: Honey and Pollen across different hives
           products [{:hive-number "H-01" :date "01-01-2025" :product "Honey" :quantity 100 :metric "kg"}
                     {:hive-number "H-02" :date "01-01-2025" :product "Honey" :quantity 50 :metric "kg"}
@@ -153,13 +153,13 @@
           (is (= (map :hive-number (:top pollen-rankings))
                  ["P-02" "P-03" "P-01"]))
           (is (= (map :total-quantity (:top pollen-rankings))
-                 [40 30 20]))))))
+                 [40 30 20])))))))
 
 (deftest calculate-rankings-rls-test
   "RLS: users only see rankings for their own products"
   (with-open [node (test-xtdb-node [])]
-    (let [user-a (java.util.UUID/randomUUID)
-          user-b (java.util.UUID/randomUUID)
+    (let [user-a (random-uuid)
+          user-b (random-uuid)
           ;; User A: 3 hives with Honey
           _ (create-test-products node user-a
                                   [{:hive-number "A-01" :date "01-01-2025" :product "Honey" :quantity 100 :metric "kg"}
@@ -196,9 +196,9 @@
       (is (= (:code result) :invalid-arguments)))))
 
 (deftest calculate-rankings-invalid-n-parameter-test
-  "Error: invalid n parameter (0, negative, > 100)"
+  "Error: invalid n parameter are: (0, negative, > 100)"
   (with-open [node (test-xtdb-node [])]
-    (let [user-id (java.util.UUID/randomUUID)
+    (let [user-id (random-uuid)
           db (xt/db node)]
       (testing "n = 0 returns error"
         (let [[status result] (rankings/calculate-rankings db user-id :n 0)]
@@ -212,4 +212,3 @@
         (let [[status result] (rankings/calculate-rankings db user-id :n 101)]
           (is (= status :error))
           (is (= (:code result) :invalid-arguments)))))))
-)
