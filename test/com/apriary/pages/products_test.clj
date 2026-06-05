@@ -183,4 +183,48 @@
         (is (= "23-11-2025" (:observation-date (first (:valid-rows result)))))
         (is (= "Queen active" (:special-feature (first (:valid-rows result)))))))))
 
+;; =============================================================================
+;; XSS Prevention Tests (Risk #7)
+;; =============================================================================
+
+(deftest import-products-xss-hive-number-test
+  "Test XSS: Script tag in hive-number field is escaped in HTML response"
+  (with-open [node (test-xtdb-node [])]
+    (let [user-id (java.util.UUID/randomUUID)
+          ;; CSV with script tag in hive-number field
+          csv "hive_number;date;product;quantity;metric\n<script>alert('XSS')</script>;23-11-2025;Honey;5;kg"
+          ctx (make-ctx node user-id :params {:csv csv})
+          response (products/import-products-handler ctx)]
+
+      (is (= (:status response) 200))
+
+      (let [body (:body response)]
+        ;; Primary check: Raw script tag must NOT be present
+        (is (not (str/includes? body "<script"))
+            "Raw <script tag must not appear in HTML response")
+
+        ;; Secondary check: Escaped form should be present (flexible regex)
+        (is (re-find #"&lt;\s*script\s*&gt;" body)
+            "Script tag should be HTML-escaped as &lt;script&gt;")))))
+
+(deftest import-products-xss-product-name-test
+  "Test XSS: Script tag in product name field is escaped in HTML response"
+  (with-open [node (test-xtdb-node [])]
+    (let [user-id (java.util.UUID/randomUUID)
+          ;; CSV with script tag in product name field
+          csv "hive_number;date;product;quantity;metric\nA-01;23-11-2025;<script>alert('XSS')</script>;5;kg"
+          ctx (make-ctx node user-id :params {:csv csv})
+          response (products/import-products-handler ctx)]
+
+      (is (= (:status response) 200))
+
+      (let [body (:body response)]
+        ;; Primary check: Raw script tag must NOT be present
+        (is (not (str/includes? body "<script"))
+            "Raw <script tag must not appear in HTML response")
+
+        ;; Secondary check: Escaped form should be present (flexible regex)
+        (is (re-find #"&lt;\s*script\s*&gt;" body)
+            "Script tag should be HTML-escaped as &lt;script&gt;")))))
+
 

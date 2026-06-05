@@ -254,13 +254,13 @@ No performance impact — tests are local-only integration tests using in-memory
 
 #### Automated
 
-- [ ] 2.1 Tests pass: `clj -M:test -n com.apriary.pages.products-test`
-- [ ] 2.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/products_test.clj`
-- [ ] 2.3 Full test suite still passes: `clj -M:test`
+- [x] 2.1 Tests pass: `clj -M:test -n com.apriary.pages.products-test`
+- [x] 2.2 Linting passes: `clj -M:clj-kondo --lint test/com/apriary/pages/products_test.clj`
+- [x] 2.3 Full test suite still passes: `clj -M:test`
 
 #### Manual
 
-- [ ] 2.4 Review test assertions to confirm they check for escaped HTML entities
+- [x] 2.4 Review test assertions to confirm they check for escaped HTML entities
 
 ### Phase 3: XSS Prevention Tests - Summaries
 
