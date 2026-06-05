@@ -368,9 +368,9 @@ Not applicable — adding new tests, no data migration.
 
 #### Automated
 
-- [x] 2.1 Schema drift test passes: verify `(is (nil? (m/explain summary-schema entity)))`
-- [x] 2.2 Negative tests fail correctly: verify `(is (some? (m/explain summary-schema entity)))`
-- [x] 2.3 Coverage includes: min/max observation length, optional field nil handling
+- [x] 2.1 Schema drift test passes: verify `(is (nil? (m/explain summary-schema entity)))` — 5609526
+- [x] 2.2 Negative tests fail correctly: verify `(is (some? (m/explain summary-schema entity)))` — 5609526
+- [x] 2.3 Coverage includes: min/max observation length, optional field nil handling — 5609526
 
 #### Manual
 
@@ -381,11 +381,11 @@ Not applicable — adding new tests, no data migration.
 
 #### Automated
 
-- [ ] 3.1 Products import succeeds: status 200, XTDB contains product records
-- [ ] 3.2 Summaries parsing succeeds: `[:ok {:valid-rows [...] :rejected-rows []}]`
-- [ ] 3.3 Products XTDB query returns expected records
-- [ ] 3.4 Summaries valid-rows contain expected observation data
-- [ ] 3.5 Test passes: `clj -M:test -n com.apriary.pages.products-test` (if added there)
+- [x] 3.1 Products import succeeds: status 200, XTDB contains product records
+- [x] 3.2 Summaries parsing succeeds: `[:ok {:valid-rows [...] :rejected-rows []}]`
+- [x] 3.3 Products XTDB query returns expected records
+- [x] 3.4 Summaries valid-rows contain expected observation data
+- [x] 3.5 Test passes: `clj -M:test -n com.apriary.pages.products-test` (if added there)
 
 #### Manual
 

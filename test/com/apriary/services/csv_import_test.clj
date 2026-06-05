@@ -346,6 +346,7 @@
         (is (nil? (m/explain summary-schema entity)))))
 
     (testing "Observation length constraint matches CSV validator - minimum (50 chars)"
+      ;; 50 chars should pass
       (let [csv-row {:observation (apply str (repeat 50 "x"))
                      :hive-number nil
                      :observation-date nil
@@ -361,10 +362,28 @@
                     :summary/observation-date (:observation-date csv-row)
                     :summary/special-feature (:special-feature csv-row)
                     :summary/content (:observation csv-row)}]
-        ;; 50 chars should pass (CSV validator minimum)
-        (is (nil? (m/explain summary-schema entity)))))
+        (is (nil? (m/explain summary-schema entity))))
+
+      ;; 49 chars should fail
+      (let [csv-row {:observation (apply str (repeat 49 "x"))
+                     :hive-number nil
+                     :observation-date nil
+                     :special-feature nil}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :summary/id (java.util.UUID/randomUUID)
+                    :summary/user-id user-id
+                    :summary/generation-id generation-id
+                    :summary/source :manual
+                    :summary/created-at now
+                    :summary/updated-at now
+                    :summary/hive-number (:hive-number csv-row)
+                    :summary/observation-date (:observation-date csv-row)
+                    :summary/special-feature (:special-feature csv-row)
+                    :summary/content (:observation csv-row)}]
+        (is (some? (m/explain summary-schema entity)))))
 
     (testing "Observation length constraint matches CSV validator - maximum (10,000 chars)"
+      ;; 10,000 chars should pass
       (let [csv-row {:observation (apply str (repeat 10000 "x"))
                      :hive-number nil
                      :observation-date nil
@@ -380,8 +399,25 @@
                     :summary/observation-date (:observation-date csv-row)
                     :summary/special-feature (:special-feature csv-row)
                     :summary/content (:observation csv-row)}]
-        ;; 10,000 chars should pass (CSV validator maximum)
-        (is (nil? (m/explain summary-schema entity)))))
+        (is (nil? (m/explain summary-schema entity))))
+
+      ;; 10,001 chars should fail
+      (let [csv-row {:observation (apply str (repeat 10001 "x"))
+                     :hive-number nil
+                     :observation-date nil
+                     :special-feature nil}
+            entity {:xt/id (java.util.UUID/randomUUID)
+                    :summary/id (java.util.UUID/randomUUID)
+                    :summary/user-id user-id
+                    :summary/generation-id generation-id
+                    :summary/source :manual
+                    :summary/created-at now
+                    :summary/updated-at now
+                    :summary/hive-number (:hive-number csv-row)
+                    :summary/observation-date (:observation-date csv-row)
+                    :summary/special-feature (:special-feature csv-row)
+                    :summary/content (:observation csv-row)}]
+        (is (some? (m/explain summary-schema entity)))))
 
     (testing "Negative test: missing required field fails Malli validation"
       (let [csv-row {:observation (apply str (repeat 60 "Test observation "))

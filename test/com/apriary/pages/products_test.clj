@@ -4,6 +4,7 @@
             [com.biffweb :refer [test-xtdb-node]]
             [com.apriary.pages.products :as products]
             [com.apriary.services.product :as product-service]
+            [com.apriary.services.csv-import :as csv-service]
             [xtdb.api :as xt]))
 
 (defn make-ctx
@@ -144,3 +145,42 @@
 
         ;; User B sees nothing
         (is (= (count products-b) 0))))))
+
+;; =============================================================================
+;; Cross-Feature Integration Test (Risk #3)
+;; =============================================================================
+
+(deftest import-products-then-summaries-test
+  ; Risk #3
+  "Verify shared parse-csv-string layer works for both features sequentially"
+  (with-open [node (test-xtdb-node [])]
+    (let [user-id (java.util.UUID/randomUUID)
+
+          ;; Step 1: Import products
+          product-csv "hive_number;date;product;quantity;metric\nA-01;23-11-2025;Honey;5;kg"
+          products-ctx (make-ctx node user-id :params {:csv product-csv})
+          products-response (products/import-products-handler products-ctx)]
+
+      ;; Verify products persisted
+      (is (= (:status products-response) 200))
+      (xt/sync node)
+      (let [db (xt/db node)
+            products (xt/q db '{:find [(pull ?p [*])] :in [user-id]
+                                :where [[?p :product/user-id user-id]]} user-id)]
+        (is (= (count products) 1)))
+
+      ;; Step 2: Import summaries (service-level, not handler)
+      (let [summary-csv "observation;hive_number;observation_date;special_feature\nThis is a detailed hive inspection observation with sufficient length for validation;A-01;23-11-2025;Queen active"
+            [status result] (csv-service/process-csv-import summary-csv)]
+
+        ;; Verify summaries parsing succeeded
+        (is (= :ok status))
+        (is (= 1 (:rows-valid result)))
+        (is (= 0 (:rows-rejected result)))
+        (is (= "This is a detailed hive inspection observation with sufficient length for validation"
+               (:observation (first (:valid-rows result)))))
+        (is (= "A-01" (:hive-number (first (:valid-rows result)))))
+        (is (= "23-11-2025" (:observation-date (first (:valid-rows result)))))
+        (is (= "Queen active" (:special-feature (first (:valid-rows result)))))))))
+
+
