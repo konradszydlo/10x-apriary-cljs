@@ -50,8 +50,8 @@ Each row is a discrete rollout phase that will open its own change folder via `/
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|-----------|-----------------|---------------|-----------|--------|---------------|
-| 1 | Critical-path coverage | Defend core CSV import → rankings flow at the cheapest layer | #1, #2, #5, #6 | Integration (in-memory XTDB + handlers), unit (parsing, ranking) | change opened | context/changes/testing-critical-path-coverage |
-| 2 | Cross-feature regression guard | Prove summaries CSV import still works after products changes | #3 | Integration (summaries import) | not started | — |
+| 1 | Critical-path coverage | Defend core CSV import → rankings flow at the cheapest layer | #1, #2, #5, #6 | Integration (in-memory XTDB + handlers), unit (parsing, ranking) | complete | context/changes/testing-critical-path-coverage |
+| 2 | Cross-feature regression guard | Prove summaries CSV import still works after products changes | #3 | Integration (summaries import) | change opened | context/changes/testing-cross-feature-regression |
 | 3 | Security hardening | Verify RLS isolation and input sanitization | #4, #7 | Integration (multi-user RLS, XSS rendering) | not started | — |
 | 4 | Quality-gates wiring | Lock the floor: coverage gate + CI (BE tests only) | — | CI config (GitHub Actions + coverage) | not started | — |
 
