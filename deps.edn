@@ -49,4 +49,8 @@
   :prod       {:jvm-opts  ["-XX:-OmitStackTraceInFastThrow"
                            "-XX:+CrashOnOutOfMemoryError"
                            "-Dbiff.env.BIFF_PROFILE=prod"]
-               :main-opts ["-m" "com.apriary"]}}}
+               :main-opts ["-m" "com.apriary"]}
+
+  ;; Dependency analysis
+  :deps/graph {:exec-fn clojure.core/println
+               :exec-args "Run: bb scripts/analyze-deps.clj [format]\nFormats: dot, json, text, metrics"}}}

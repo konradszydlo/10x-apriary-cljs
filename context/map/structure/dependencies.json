@@ -1,0 +1,203 @@
+{
+  "namespaces" : [ "com.apriary.util", "com.apriary.services.csv-import", "com.apriary.pages.summaries-view", "com.apriary.ui.summaries-list", "com.apriary.middleware", "com.apriary.ui.rankings", "com.apriary.dto.generation", "com.apriary.pages.csv-import", "com.apriary.services.product", "com.apriary.services.product-rankings", "com.apriary.ui.header", "com.apriary.pages.generations", "com.apriary.ui.products", "com.apriary", "com.apriary.ui.helpers", "com.apriary.pages.app", "com.apriary.ui", "com.apriary.pages.home", "com.apriary.ui.error", "com.apriary.services.generation", "com.apriary.pages.products", "com.apriary.dto.summary", "com.apriary.ui.csv-import", "com.apriary.schema.api", "com.apriary.pages.rankings", "com.apriary.services.summary", "com.apriary.ui.layout", "com.apriary.pages.summaries", "com.apriary.email", "com.apriary.services.openrouter", "com.apriary.ui.summary-card", "com.apriary.settings", "com.apriary.auth", "com.apriary.services.product-csv", "com.apriary.schema", "com.apriary.ui.toast" ],
+  "dependencies" : {
+    "com.apriary.pages.summaries-view" : [ "com.apriary.util", "com.apriary.services.csv-import", "com.apriary.ui.summaries-list", "com.apriary.middleware", "com.apriary.ui.helpers", "com.apriary.services.generation", "com.apriary.dto.summary", "com.apriary.ui.csv-import", "com.apriary.services.summary", "com.apriary.ui.layout", "com.apriary.services.openrouter", "com.apriary.ui.summary-card" ],
+    "com.apriary.ui.summaries-list" : [ "com.apriary.ui.summary-card" ],
+    "com.apriary.dto.generation" : [ "com.apriary.util" ],
+    "com.apriary.pages.csv-import" : [ "com.apriary.services.csv-import", "com.apriary.middleware", "com.apriary.ui.helpers", "com.apriary.services.generation", "com.apriary.ui.layout", "com.apriary.services.openrouter" ],
+    "com.apriary.pages.generations" : [ "com.apriary.util", "com.apriary.dto.generation", "com.apriary.services.generation" ],
+    "com.apriary" : [ "com.apriary.pages.summaries-view", "com.apriary.middleware", "com.apriary.pages.generations", "com.apriary.pages.app", "com.apriary.ui", "com.apriary.pages.home", "com.apriary.pages.products", "com.apriary.pages.rankings", "com.apriary.auth", "com.apriary.schema" ],
+    "com.apriary.ui.helpers" : [ "com.apriary.ui.error", "com.apriary.ui.toast" ],
+    "com.apriary.pages.app" : [ "com.apriary.middleware" ],
+    "com.apriary.ui" : [ "com.apriary.ui.header", "com.apriary.settings" ],
+    "com.apriary.pages.home" : [ "com.apriary.middleware", "com.apriary.ui", "com.apriary.settings" ],
+    "com.apriary.pages.products" : [ "com.apriary.services.csv-import", "com.apriary.middleware", "com.apriary.services.product", "com.apriary.ui.products", "com.apriary.ui.layout", "com.apriary.services.product-csv" ],
+    "com.apriary.dto.summary" : [ "com.apriary.util" ],
+    "com.apriary.pages.rankings" : [ "com.apriary.middleware", "com.apriary.ui.rankings", "com.apriary.services.product-rankings", "com.apriary.ui.layout" ],
+    "com.apriary.ui.layout" : [ "com.apriary.ui.header", "com.apriary.ui.error", "com.apriary.settings", "com.apriary.ui.toast" ],
+    "com.apriary.pages.summaries" : [ "com.apriary.util", "com.apriary.services.csv-import", "com.apriary.services.generation", "com.apriary.dto.summary", "com.apriary.services.summary", "com.apriary.services.openrouter" ],
+    "com.apriary.auth" : [ "com.apriary.email" ]
+  },
+  "metrics" : {
+    "com.apriary.util" : {
+      "ca" : 5,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.services.csv-import" : {
+      "ca" : 4,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.pages.summaries-view" : {
+      "ca" : 1,
+      "ce" : 12,
+      "instability" : 0.9230769230769231
+    },
+    "com.apriary.ui.summaries-list" : {
+      "ca" : 1,
+      "ce" : 1,
+      "instability" : 0.5
+    },
+    "com.apriary.middleware" : {
+      "ca" : 7,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.ui.rankings" : {
+      "ca" : 1,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.dto.generation" : {
+      "ca" : 1,
+      "ce" : 1,
+      "instability" : 0.5
+    },
+    "com.apriary.pages.csv-import" : {
+      "ca" : 0,
+      "ce" : 6,
+      "instability" : 1.0
+    },
+    "com.apriary.services.product" : {
+      "ca" : 1,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.services.product-rankings" : {
+      "ca" : 1,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.ui.header" : {
+      "ca" : 2,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.pages.generations" : {
+      "ca" : 1,
+      "ce" : 3,
+      "instability" : 0.75
+    },
+    "com.apriary.ui.products" : {
+      "ca" : 1,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary" : {
+      "ca" : 0,
+      "ce" : 10,
+      "instability" : 1.0
+    },
+    "com.apriary.ui.helpers" : {
+      "ca" : 2,
+      "ce" : 2,
+      "instability" : 0.5
+    },
+    "com.apriary.pages.app" : {
+      "ca" : 1,
+      "ce" : 1,
+      "instability" : 0.5
+    },
+    "com.apriary.ui" : {
+      "ca" : 2,
+      "ce" : 2,
+      "instability" : 0.5
+    },
+    "com.apriary.pages.home" : {
+      "ca" : 1,
+      "ce" : 3,
+      "instability" : 0.75
+    },
+    "com.apriary.ui.error" : {
+      "ca" : 2,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.services.generation" : {
+      "ca" : 4,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.pages.products" : {
+      "ca" : 1,
+      "ce" : 6,
+      "instability" : 0.8571428571428571
+    },
+    "com.apriary.dto.summary" : {
+      "ca" : 2,
+      "ce" : 1,
+      "instability" : 0.3333333333333333
+    },
+    "com.apriary.ui.csv-import" : {
+      "ca" : 1,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.schema.api" : {
+      "ca" : 0,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.pages.rankings" : {
+      "ca" : 1,
+      "ce" : 4,
+      "instability" : 0.8
+    },
+    "com.apriary.services.summary" : {
+      "ca" : 2,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.ui.layout" : {
+      "ca" : 4,
+      "ce" : 4,
+      "instability" : 0.5
+    },
+    "com.apriary.pages.summaries" : {
+      "ca" : 0,
+      "ce" : 6,
+      "instability" : 1.0
+    },
+    "com.apriary.email" : {
+      "ca" : 1,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.services.openrouter" : {
+      "ca" : 3,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.ui.summary-card" : {
+      "ca" : 2,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.settings" : {
+      "ca" : 3,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.auth" : {
+      "ca" : 1,
+      "ce" : 1,
+      "instability" : 0.5
+    },
+    "com.apriary.services.product-csv" : {
+      "ca" : 1,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.schema" : {
+      "ca" : 1,
+      "ce" : 0,
+      "instability" : 0.0
+    },
+    "com.apriary.ui.toast" : {
+      "ca" : 2,
+      "ce" : 0,
+      "instability" : 0.0
+    }
+  }
+}

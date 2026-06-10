@@ -1,0 +1,48 @@
+# Namespace Stability Metrics
+
+Format: namespace | Ca (afferent) | Ce (efferent) | I (instability)
+
+com.apriary.util                                   | Ca= 5 | Ce= 0 | I=0.00 | STABLE
+com.apriary.services.csv-import                    | Ca= 4 | Ce= 0 | I=0.00 | STABLE
+com.apriary.middleware                             | Ca= 7 | Ce= 0 | I=0.00 | STABLE
+com.apriary.ui.rankings                            | Ca= 1 | Ce= 0 | I=0.00 | STABLE
+com.apriary.services.product                       | Ca= 1 | Ce= 0 | I=0.00 | STABLE
+com.apriary.services.product-rankings              | Ca= 1 | Ce= 0 | I=0.00 | STABLE
+com.apriary.ui.header                              | Ca= 2 | Ce= 0 | I=0.00 | STABLE
+com.apriary.ui.products                            | Ca= 1 | Ce= 0 | I=0.00 | STABLE
+com.apriary.ui.error                               | Ca= 2 | Ce= 0 | I=0.00 | STABLE
+com.apriary.services.generation                    | Ca= 4 | Ce= 0 | I=0.00 | STABLE
+com.apriary.ui.csv-import                          | Ca= 1 | Ce= 0 | I=0.00 | STABLE
+com.apriary.schema.api                             | Ca= 0 | Ce= 0 | I=0.00 | STABLE
+com.apriary.services.summary                       | Ca= 2 | Ce= 0 | I=0.00 | STABLE
+com.apriary.email                                  | Ca= 1 | Ce= 0 | I=0.00 | STABLE
+com.apriary.services.openrouter                    | Ca= 3 | Ce= 0 | I=0.00 | STABLE
+com.apriary.ui.summary-card                        | Ca= 2 | Ce= 0 | I=0.00 | STABLE
+com.apriary.settings                               | Ca= 3 | Ce= 0 | I=0.00 | STABLE
+com.apriary.services.product-csv                   | Ca= 1 | Ce= 0 | I=0.00 | STABLE
+com.apriary.schema                                 | Ca= 1 | Ce= 0 | I=0.00 | STABLE
+com.apriary.ui.toast                               | Ca= 2 | Ce= 0 | I=0.00 | STABLE
+com.apriary.dto.summary                            | Ca= 2 | Ce= 1 | I=0.33 | medium
+com.apriary.ui.summaries-list                      | Ca= 1 | Ce= 1 | I=0.50 | medium
+com.apriary.dto.generation                         | Ca= 1 | Ce= 1 | I=0.50 | medium
+com.apriary.ui.helpers                             | Ca= 2 | Ce= 2 | I=0.50 | medium
+com.apriary.pages.app                              | Ca= 1 | Ce= 1 | I=0.50 | medium
+com.apriary.ui                                     | Ca= 2 | Ce= 2 | I=0.50 | medium
+com.apriary.ui.layout                              | Ca= 4 | Ce= 4 | I=0.50 | medium
+com.apriary.auth                                   | Ca= 1 | Ce= 1 | I=0.50 | medium
+com.apriary.pages.generations                      | Ca= 1 | Ce= 3 | I=0.75 | unstable
+com.apriary.pages.home                             | Ca= 1 | Ce= 3 | I=0.75 | unstable
+com.apriary.pages.rankings                         | Ca= 1 | Ce= 4 | I=0.80 | unstable
+com.apriary.pages.products                         | Ca= 1 | Ce= 6 | I=0.86 | unstable
+com.apriary.pages.summaries-view                   | Ca= 1 | Ce=12 | I=0.92 | unstable
+com.apriary.pages.csv-import                       | Ca= 0 | Ce= 6 | I=1.00 | unstable
+com.apriary                                        | Ca= 0 | Ce=10 | I=1.00 | unstable
+com.apriary.pages.summaries                        | Ca= 0 | Ce= 6 | I=1.00 | unstable
+
+# Interpretation:
+Ca (afferent coupling)  = # of namespaces that depend on this one
+Ce (efferent coupling)  = # of namespaces this one depends on
+I  (instability)        = Ce / (Ca + Ce)
+
+Stable namespaces (I < 0.3): hard to change, many dependents
+Unstable namespaces (I ≥ 0.7): easy to change, few dependents

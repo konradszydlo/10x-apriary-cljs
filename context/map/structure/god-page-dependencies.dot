@@ -1,0 +1,74 @@
+digraph GodPage {
+    // Layout
+    rankdir=LR;
+    node [shape=box, style=filled];
+
+    // Central node - The God Page
+    summaries_view [label="summaries-view\n(God Page)\n\n12 internal deps\nTestability: 25 🔴\n9 changes (hotspot)",
+                    fillcolor="#ff6b6b", fontcolor=white, penwidth=3];
+
+    // Services layer (stable, isolated)
+    subgraph cluster_services {
+        label="Services (4)\nCa=0 Ce=0";
+        style=filled;
+        fillcolor="#e8f5e9";
+
+        svc_summary [label="services.summary", fillcolor="#4caf50", fontcolor=white];
+        svc_csv [label="services.csv-import", fillcolor="#4caf50", fontcolor=white];
+        svc_openrouter [label="services.openrouter", fillcolor="#4caf50", fontcolor=white];
+        svc_generation [label="services.generation", fillcolor="#4caf50", fontcolor=white];
+    }
+
+    // UI components (presentation only)
+    subgraph cluster_ui {
+        label="UI Components (6)\nPure presentation";
+        style=filled;
+        fillcolor="#e3f2fd";
+
+        ui_layout [label="ui.layout\n(Ca=4)", fillcolor="#2196f3", fontcolor=white];
+        ui_helpers [label="ui.helpers", fillcolor="#2196f3", fontcolor=white];
+        ui_csv_import [label="ui.csv-import", fillcolor="#2196f3", fontcolor=white];
+        ui_summary_card [label="ui.summary-card", fillcolor="#2196f3", fontcolor=white];
+        ui_summaries_list [label="ui.summaries-list", fillcolor="#2196f3", fontcolor=white];
+        ui_util [label="ui.util", fillcolor="#2196f3", fontcolor=white];
+    }
+
+    // DTO layer
+    dto_summary [label="dto.summary\n(transformation)", fillcolor="#ffd54f"];
+
+    // Infrastructure
+    middleware [label="middleware\n(Ca=7, stable)", fillcolor="#ff9800", fontcolor=white];
+
+    // External dependencies (grouped)
+    external [label="External (7):\nXTDB, Rum, Malli (2),\nCheshire, clojure.string,\nlogging",
+              shape=box3d, fillcolor="#bdbdbd"];
+
+    // Dependencies from summaries-view
+    summaries_view -> svc_summary [label="business logic"];
+    summaries_view -> svc_csv [label="CSV processing"];
+    summaries_view -> svc_openrouter [label="AI generation"];
+    summaries_view -> svc_generation [label="async jobs"];
+
+    summaries_view -> ui_layout [label="page structure"];
+    summaries_view -> ui_helpers [label="rendering utils"];
+    summaries_view -> ui_csv_import [label="import UI"];
+    summaries_view -> ui_summary_card [label="card display"];
+    summaries_view -> ui_summaries_list [label="list rendering"];
+    summaries_view -> ui_util [label="utilities"];
+
+    summaries_view -> dto_summary [label="data transform"];
+    summaries_view -> middleware [label="HTTP handling"];
+    summaries_view -> external [label="7 libs"];
+
+    // Legend
+    legend [shape=plaintext, label=<
+        <table border="0" cellborder="1" cellspacing="0">
+        <tr><td colspan="2"><b>Legend</b></td></tr>
+        <tr><td bgcolor="#ff6b6b">  </td><td align="left">God Page (I=1.00 unstable)</td></tr>
+        <tr><td bgcolor="#4caf50">  </td><td align="left">Services (I=0.00 stable)</td></tr>
+        <tr><td bgcolor="#2196f3">  </td><td align="left">UI (presentation only)</td></tr>
+        <tr><td bgcolor="#ffd54f">  </td><td align="left">DTO (data transform)</td></tr>
+        <tr><td bgcolor="#ff9800">  </td><td align="left">Infrastructure (Ca=7)</td></tr>
+        </table>
+    >];
+}

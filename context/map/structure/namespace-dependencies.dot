@@ -1,0 +1,118 @@
+digraph dependencies {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  "com.apriary" [label="com.apriary\nI=1.00", fillcolor="lightcoral", style="filled,rounded"];
+  "com.apriary.auth" [label="com.apriary.auth\nI=0.50", fillcolor="lightyellow", style="filled,rounded"];
+  "com.apriary.dto.generation" [label="com.apriary.dto.generation\nI=0.50", fillcolor="lightyellow", style="filled,rounded"];
+  "com.apriary.dto.summary" [label="com.apriary.dto.summary\nI=0.33", fillcolor="lightyellow", style="filled,rounded"];
+  "com.apriary.email" [label="com.apriary.email\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.middleware" [label="com.apriary.middleware\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.pages.app" [label="com.apriary.pages.app\nI=0.50", fillcolor="lightyellow", style="filled,rounded"];
+  "com.apriary.pages.csv-import" [label="com.apriary.pages.csv-import\nI=1.00", fillcolor="lightcoral", style="filled,rounded"];
+  "com.apriary.pages.generations" [label="com.apriary.pages.generations\nI=0.75", fillcolor="lightcoral", style="filled,rounded"];
+  "com.apriary.pages.home" [label="com.apriary.pages.home\nI=0.75", fillcolor="lightcoral", style="filled,rounded"];
+  "com.apriary.pages.products" [label="com.apriary.pages.products\nI=0.86", fillcolor="lightcoral", style="filled,rounded"];
+  "com.apriary.pages.rankings" [label="com.apriary.pages.rankings\nI=0.80", fillcolor="lightcoral", style="filled,rounded"];
+  "com.apriary.pages.summaries" [label="com.apriary.pages.summaries\nI=1.00", fillcolor="lightcoral", style="filled,rounded"];
+  "com.apriary.pages.summaries-view" [label="com.apriary.pages.summaries-view\nI=0.92", fillcolor="lightcoral", style="filled,rounded"];
+  "com.apriary.schema" [label="com.apriary.schema\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.schema.api" [label="com.apriary.schema.api\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.services.csv-import" [label="com.apriary.services.csv-import\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.services.generation" [label="com.apriary.services.generation\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.services.openrouter" [label="com.apriary.services.openrouter\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.services.product" [label="com.apriary.services.product\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.services.product-csv" [label="com.apriary.services.product-csv\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.services.product-rankings" [label="com.apriary.services.product-rankings\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.services.summary" [label="com.apriary.services.summary\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.settings" [label="com.apriary.settings\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.ui" [label="com.apriary.ui\nI=0.50", fillcolor="lightyellow", style="filled,rounded"];
+  "com.apriary.ui.csv-import" [label="com.apriary.ui.csv-import\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.ui.error" [label="com.apriary.ui.error\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.ui.header" [label="com.apriary.ui.header\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.ui.helpers" [label="com.apriary.ui.helpers\nI=0.50", fillcolor="lightyellow", style="filled,rounded"];
+  "com.apriary.ui.layout" [label="com.apriary.ui.layout\nI=0.50", fillcolor="lightyellow", style="filled,rounded"];
+  "com.apriary.ui.products" [label="com.apriary.ui.products\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.ui.rankings" [label="com.apriary.ui.rankings\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.ui.summaries-list" [label="com.apriary.ui.summaries-list\nI=0.50", fillcolor="lightyellow", style="filled,rounded"];
+  "com.apriary.ui.summary-card" [label="com.apriary.ui.summary-card\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.ui.toast" [label="com.apriary.ui.toast\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+  "com.apriary.util" [label="com.apriary.util\nI=0.00", fillcolor="lightgreen", style="filled,rounded"];
+
+  "com.apriary" -> "com.apriary.auth";
+  "com.apriary" -> "com.apriary.middleware";
+  "com.apriary" -> "com.apriary.pages.app";
+  "com.apriary" -> "com.apriary.pages.generations";
+  "com.apriary" -> "com.apriary.pages.home";
+  "com.apriary" -> "com.apriary.pages.products";
+  "com.apriary" -> "com.apriary.pages.rankings";
+  "com.apriary" -> "com.apriary.pages.summaries-view";
+  "com.apriary" -> "com.apriary.schema";
+  "com.apriary" -> "com.apriary.ui";
+  "com.apriary.auth" -> "com.apriary.email";
+  "com.apriary.dto.generation" -> "com.apriary.util";
+  "com.apriary.dto.summary" -> "com.apriary.util";
+  "com.apriary.pages.app" -> "com.apriary.middleware";
+  "com.apriary.pages.csv-import" -> "com.apriary.middleware";
+  "com.apriary.pages.csv-import" -> "com.apriary.services.csv-import";
+  "com.apriary.pages.csv-import" -> "com.apriary.services.generation";
+  "com.apriary.pages.csv-import" -> "com.apriary.services.openrouter";
+  "com.apriary.pages.csv-import" -> "com.apriary.ui.helpers";
+  "com.apriary.pages.csv-import" -> "com.apriary.ui.layout";
+  "com.apriary.pages.generations" -> "com.apriary.dto.generation";
+  "com.apriary.pages.generations" -> "com.apriary.services.generation";
+  "com.apriary.pages.generations" -> "com.apriary.util";
+  "com.apriary.pages.home" -> "com.apriary.middleware";
+  "com.apriary.pages.home" -> "com.apriary.settings";
+  "com.apriary.pages.home" -> "com.apriary.ui";
+  "com.apriary.pages.products" -> "com.apriary.middleware";
+  "com.apriary.pages.products" -> "com.apriary.services.csv-import";
+  "com.apriary.pages.products" -> "com.apriary.services.product";
+  "com.apriary.pages.products" -> "com.apriary.services.product-csv";
+  "com.apriary.pages.products" -> "com.apriary.ui.layout";
+  "com.apriary.pages.products" -> "com.apriary.ui.products";
+  "com.apriary.pages.rankings" -> "com.apriary.middleware";
+  "com.apriary.pages.rankings" -> "com.apriary.services.product-rankings";
+  "com.apriary.pages.rankings" -> "com.apriary.ui.layout";
+  "com.apriary.pages.rankings" -> "com.apriary.ui.rankings";
+  "com.apriary.pages.summaries" -> "com.apriary.dto.summary";
+  "com.apriary.pages.summaries" -> "com.apriary.services.csv-import";
+  "com.apriary.pages.summaries" -> "com.apriary.services.generation";
+  "com.apriary.pages.summaries" -> "com.apriary.services.openrouter";
+  "com.apriary.pages.summaries" -> "com.apriary.services.summary";
+  "com.apriary.pages.summaries" -> "com.apriary.util";
+  "com.apriary.pages.summaries-view" -> "com.apriary.dto.summary";
+  "com.apriary.pages.summaries-view" -> "com.apriary.middleware";
+  "com.apriary.pages.summaries-view" -> "com.apriary.services.csv-import";
+  "com.apriary.pages.summaries-view" -> "com.apriary.services.generation";
+  "com.apriary.pages.summaries-view" -> "com.apriary.services.openrouter";
+  "com.apriary.pages.summaries-view" -> "com.apriary.services.summary";
+  "com.apriary.pages.summaries-view" -> "com.apriary.ui.csv-import";
+  "com.apriary.pages.summaries-view" -> "com.apriary.ui.helpers";
+  "com.apriary.pages.summaries-view" -> "com.apriary.ui.layout";
+  "com.apriary.pages.summaries-view" -> "com.apriary.ui.summaries-list";
+  "com.apriary.pages.summaries-view" -> "com.apriary.ui.summary-card";
+  "com.apriary.pages.summaries-view" -> "com.apriary.util";
+  "com.apriary.ui" -> "com.apriary.settings";
+  "com.apriary.ui" -> "com.apriary.ui.header";
+  "com.apriary.ui.helpers" -> "com.apriary.ui.error";
+  "com.apriary.ui.helpers" -> "com.apriary.ui.toast";
+  "com.apriary.ui.layout" -> "com.apriary.settings";
+  "com.apriary.ui.layout" -> "com.apriary.ui.error";
+  "com.apriary.ui.layout" -> "com.apriary.ui.header";
+  "com.apriary.ui.layout" -> "com.apriary.ui.toast";
+  "com.apriary.ui.summaries-list" -> "com.apriary.ui.summary-card";
+
+  // Legend
+  subgraph cluster_legend {
+    label="Instability (I)";
+    node [shape=plaintext];
+    legend [label=<
+      <table border="0" cellpadding="2" cellspacing="0">
+        <tr><td bgcolor="lightgreen">Stable (I &lt; 0.3)</td></tr>
+        <tr><td bgcolor="lightyellow">Medium (0.3 ≤ I &lt; 0.7)</td></tr>
+        <tr><td bgcolor="lightcoral">Unstable (I ≥ 0.7)</td></tr>
+      </table>
+    >];
+  }
+}
