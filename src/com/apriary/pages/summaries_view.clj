@@ -332,7 +332,8 @@
 ;; =============================================================================
 
 (def create-manual-summary-schema
-  "Schema for validating manual summary creation form data.
+  "Canonical schema for validating manual summary creation form data.
+  Inline schema preferred over centralized validation layer (YAGNI: only 1 of 8 pages has validation as of Q2 2026).
 
   Field specifications:
   - :hive-number - Optional string

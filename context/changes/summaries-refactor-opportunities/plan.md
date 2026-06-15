@@ -470,15 +470,15 @@ All changes are compile-time or validation-time; no new runtime computations add
 
 #### Automated
 
-- [ ] 1.1 Verify zero imports: `grep -r "schema\.api" src/ test/` returns 0 results
-- [ ] 1.2 Delete schema file: `test ! -f src/com/apriary/schema/api.clj`
-- [ ] 1.3 Linting passes: `clojure -M:dev lint` (clj-kondo)
-- [ ] 1.4 Unit tests pass: `clojure -M:test`
-- [ ] 1.5 Integration tests pass (CI)
+- [x] 1.1 Verify zero imports: `grep -r "schema\.api" src/ test/` returns 0 results
+- [x] 1.2 Delete schema file: `test ! -f src/com/apriary/schema/api.clj`
+- [x] 1.3 Linting passes: `clojure -M:dev lint` (clj-kondo)
+- [x] 1.4 Unit tests pass: `clojure -M:test`
+- [x] 1.5 Integration tests pass (CI)
 
 #### Manual
 
-- [ ] 1.6 Git diff shows only expected changes (schema/api.clj deletion + summaries_view.clj docstring)
+- [x] 1.6 Git diff shows only expected changes (schema/api.clj deletion + summaries_view.clj docstring)
 
 ### Phase 2: Fix Schema Drift (C3)
 
