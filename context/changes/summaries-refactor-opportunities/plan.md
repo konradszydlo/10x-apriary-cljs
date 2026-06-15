@@ -501,12 +501,12 @@ All changes are compile-time or validation-time; no new runtime computations add
 
 #### Automated
 
-- [x] 3.1 Single schema remains: `grep -c "def create-manual-summary-schema" src/ == 1`
-- [x] 3.2 No schema.api references: `! grep -r "schema\.api" src/ test/`
-- [x] 3.3 Linting passes: `clojure -M:dev lint`
-- [x] 3.4 All tests pass: `clojure -M:test` (regression check)
+- [x] 3.1 Single schema remains: `grep -c "def create-manual-summary-schema" src/ == 1` — 6f0971f
+- [x] 3.2 No schema.api references: `! grep -r "schema\.api" src/ test/` — 6f0971f
+- [x] 3.3 Linting passes: `clojure -M:dev lint` — 6f0971f
+- [x] 3.4 All tests pass: `clojure -M:test` (regression check) — 6f0971f
 
 #### Manual
 
-- [ ] 3.5 Application starts: `clj -M:dev dev` runs without errors
-- [ ] 3.6 Optional smoke test: Create summary via UI, verify validation works
+- [x] 3.5 Application starts: `clj -M:dev dev` runs without errors — 6f0971f
+- [x] 3.6 Optional smoke test: Create summary via UI, verify validation works — 6f0971f
