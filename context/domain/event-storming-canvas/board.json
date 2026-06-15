@@ -1,0 +1,350 @@
+{
+  "title": "Event Storming — Apriary Summary Generation (Complete Model)",
+  "phase": "aggregates",
+  "items": [
+    {
+      "id": "actor-1",
+      "role": "actor",
+      "text": "Beekeeper",
+      "x": 100,
+      "y": 92
+    },
+    {
+      "id": "cmd-1",
+      "role": "command",
+      "text": "Paste CSV observations",
+      "x": 100,
+      "y": 200
+    },
+    {
+      "id": "evt-1",
+      "role": "event",
+      "text": "CSV pasted",
+      "x": 100,
+      "y": 330
+    },
+    {
+      "id": "hot-1",
+      "role": "hotspot",
+      "text": "CSV parse error? Invalid format, missing columns",
+      "x": 114,
+      "y": 346
+    },
+    {
+      "id": "actor-2",
+      "role": "actor",
+      "text": "Beekeeper",
+      "x": 300,
+      "y": 92
+    },
+    {
+      "id": "read-1",
+      "role": "readmodel",
+      "text": "CSV validation results",
+      "x": 100,
+      "y": 458
+    },
+    {
+      "id": "cmd-2",
+      "role": "command",
+      "text": "Submit observations",
+      "x": 300,
+      "y": 200
+    },
+    {
+      "id": "evt-2",
+      "role": "event",
+      "text": "Observations validated",
+      "x": 300,
+      "y": 330
+    },
+    {
+      "id": "hot-2",
+      "role": "hotspot",
+      "text": "Validation rejects all rows? User sees empty result",
+      "x": 295,
+      "y": 342
+    },
+    {
+      "id": "actor-3",
+      "role": "actor",
+      "text": "System",
+      "x": 500,
+      "y": 92
+    },
+    {
+      "id": "cmd-3",
+      "role": "command",
+      "text": "Create generation record",
+      "x": 500,
+      "y": 200
+    },
+    {
+      "id": "evt-3",
+      "role": "event",
+      "text": "Generation created",
+      "x": 500,
+      "y": 330
+    },
+    {
+      "id": "policy-1",
+      "role": "policy",
+      "text": "Whenever observations validated → create generation",
+      "x": 380,
+      "y": 586
+    },
+    {
+      "id": "agg-1",
+      "role": "aggregate",
+      "text": "Generation",
+      "x": 500,
+      "y": 568
+    },
+    {
+      "id": "actor-4",
+      "role": "actor",
+      "text": "System",
+      "x": 700,
+      "y": 92
+    },
+    {
+      "id": "cmd-4",
+      "role": "command",
+      "text": "Request AI summaries",
+      "x": 700,
+      "y": 200
+    },
+    {
+      "id": "evt-4",
+      "role": "event",
+      "text": "AI generation started",
+      "x": 700,
+      "y": 330
+    },
+    {
+      "id": "hot-3",
+      "role": "hotspot",
+      "text": "OpenRouter timeout? No retry logic (mocked in MVP)",
+      "x": 700,
+      "y": 338
+    },
+    {
+      "id": "hot-4",
+      "role": "hotspot",
+      "text": "Rate limit hit? Batch size >100 observations",
+      "x": 700,
+      "y": 386
+    },
+    {
+      "id": "actor-5",
+      "role": "actor",
+      "text": "OpenRouter API",
+      "x": 900,
+      "y": 92
+    },
+    {
+      "id": "cmd-5",
+      "role": "command",
+      "text": "Generate summaries batch",
+      "x": 900,
+      "y": 200
+    },
+    {
+      "id": "evt-5",
+      "role": "event",
+      "text": "Summaries generated",
+      "x": 900,
+      "y": 330
+    },
+    {
+      "id": "ext-1",
+      "role": "external",
+      "text": "OpenRouter LLM",
+      "x": 900,
+      "y": 716
+    },
+    {
+      "id": "hot-5",
+      "role": "hotspot",
+      "text": "Partial failure? Some summaries ok, some failed",
+      "x": 900,
+      "y": 338
+    },
+    {
+      "id": "actor-6",
+      "role": "actor",
+      "text": "System",
+      "x": 1100,
+      "y": 92
+    },
+    {
+      "id": "cmd-6",
+      "role": "command",
+      "text": "Store summaries",
+      "x": 1100,
+      "y": 200
+    },
+    {
+      "id": "evt-6",
+      "role": "event",
+      "text": "Summaries stored",
+      "x": 1100,
+      "y": 330
+    },
+    {
+      "id": "policy-2",
+      "role": "policy",
+      "text": "Whenever summaries generated → store summaries",
+      "x": 980,
+      "y": 586
+    },
+    {
+      "id": "agg-2",
+      "role": "aggregate",
+      "text": "Summary",
+      "x": 1100,
+      "y": 568
+    },
+    {
+      "id": "hot-6",
+      "role": "hotspot",
+      "text": "XTDB transaction fails? Counters inconsistent",
+      "x": 1100,
+      "y": 338
+    },
+    {
+      "id": "actor-7",
+      "role": "actor",
+      "text": "Beekeeper",
+      "x": 1300,
+      "y": 92
+    },
+    {
+      "id": "read-2",
+      "role": "readmodel",
+      "text": "Generation status & summaries list",
+      "x": 1100,
+      "y": 458
+    },
+    {
+      "id": "cmd-7",
+      "role": "command",
+      "text": "View summaries",
+      "x": 1300,
+      "y": 200
+    },
+    {
+      "id": "evt-7",
+      "role": "event",
+      "text": "User views summaries",
+      "x": 1300,
+      "y": 330
+    },
+    {
+      "id": "actor-8",
+      "role": "actor",
+      "text": "Beekeeper",
+      "x": 1500,
+      "y": 92
+    },
+    {
+      "id": "read-3",
+      "role": "readmodel",
+      "text": "Summary content & metadata",
+      "x": 1300,
+      "y": 458
+    },
+    {
+      "id": "read-4",
+      "role": "readmodel",
+      "text": "Generation counter totals",
+      "x": 1500,
+      "y": 458
+    },
+    {
+      "id": "cmd-8",
+      "role": "command",
+      "text": "Accept summary",
+      "x": 1500,
+      "y": 200
+    },
+    {
+      "id": "evt-8",
+      "role": "event",
+      "text": "User clicks Accept",
+      "x": 1500,
+      "y": 330
+    },
+    {
+      "id": "hot-7",
+      "role": "hotspot",
+      "text": "Concurrent accepts? Counter overflow (no validation in single accept)",
+      "x": 1500,
+      "y": 338
+    },
+    {
+      "id": "hot-8",
+      "role": "hotspot",
+      "text": "Duplicate request? User double-clicks Accept button",
+      "x": 1500,
+      "y": 386
+    },
+    {
+      "id": "actor-9",
+      "role": "actor",
+      "text": "System",
+      "x": 1700,
+      "y": 92
+    },
+    {
+      "id": "cmd-9",
+      "role": "command",
+      "text": "Mark summary accepted",
+      "x": 1700,
+      "y": 200
+    },
+    {
+      "id": "evt-9",
+      "role": "event",
+      "text": "Summary accepted",
+      "x": 1700,
+      "y": 330
+    },
+    {
+      "id": "actor-10",
+      "role": "actor",
+      "text": "System",
+      "x": 1900,
+      "y": 92
+    },
+    {
+      "id": "cmd-10",
+      "role": "command",
+      "text": "Update generation counters",
+      "x": 1900,
+      "y": 200
+    },
+    {
+      "id": "evt-10",
+      "role": "event",
+      "text": "Generation counters updated",
+      "x": 1900,
+      "y": 330
+    },
+    {
+      "id": "policy-3",
+      "role": "policy",
+      "text": "Whenever summary accepted → update generation counters",
+      "x": 1720,
+      "y": 586
+    },
+    {
+      "id": "hot-9",
+      "role": "hotspot",
+      "text": "Manual summary accepted? Validation prevents but UI shows button",
+      "x": 1900,
+      "y": 338
+    }
+  ],
+  "updatedAt": "2026-06-15T14:48:46.612Z"
+}
