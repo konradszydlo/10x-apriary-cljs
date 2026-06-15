@@ -484,27 +484,27 @@ All changes are compile-time or validation-time; no new runtime computations add
 
 #### Automated
 
-- [x] 2.1 Schema updated: `grep ":max 50000" src/com/apriary/schema.clj` succeeds
-- [x] 2.2 No schema 10k limits: `! grep ":max 10000" src/com/apriary/schema.clj`
-- [x] 2.3 CSV validator updated: `grep -E "(> \(count .* 50000)" src/com/apriary/services/csv_import.clj` succeeds
-- [x] 2.4 No CSV 10k limits: `! grep "10000\|10,000" src/com/apriary/services/csv_import.clj`
-- [x] 2.5 Unit tests pass: `clojure -M:test` (csv_import_test.clj GREEN)
-- [x] 2.6 Linting passes: `clojure -M:dev lint`
-- [x] 2.7 Integration tests pass (CI)
+- [x] 2.1 Schema updated: `grep ":max 50000" src/com/apriary/schema.clj` succeeds — 21d6030
+- [x] 2.2 No schema 10k limits: `! grep ":max 10000" src/com/apriary/schema.clj` — 21d6030
+- [x] 2.3 CSV validator updated: `grep -E "(> \(count .* 50000)" src/com/apriary/services/csv_import.clj` succeeds — 21d6030
+- [x] 2.4 No CSV 10k limits: `! grep "10000\|10,000" src/com/apriary/services/csv_import.clj` — 21d6030
+- [x] 2.5 Unit tests pass: `clojure -M:test` (csv_import_test.clj GREEN) — 21d6030
+- [x] 2.6 Linting passes: `clojure -M:dev lint` — 21d6030
+- [x] 2.7 Integration tests pass (CI) — 21d6030
 
 #### Manual
 
-- [ ] 2.8 Git diff confirms expected changes (schema.clj + csv_import.clj + tests)
-- [ ] 2.9 CSV import and manual entry both accept same max length (consistency verified)
+- [x] 2.8 Git diff confirms expected changes (schema.clj + csv_import.clj + tests) — 21d6030
+- [x] 2.9 CSV import and manual entry both accept same max length (consistency verified) — 21d6030
 
 ### Phase 3: Verify Schema Duplication Eliminated (C5)
 
 #### Automated
 
-- [ ] 3.1 Single schema remains: `grep -c "def create-manual-summary-schema" src/ == 1`
-- [ ] 3.2 No schema.api references: `! grep -r "schema\.api" src/ test/`
-- [ ] 3.3 Linting passes: `clojure -M:dev lint`
-- [ ] 3.4 All tests pass: `clojure -M:test` (regression check)
+- [x] 3.1 Single schema remains: `grep -c "def create-manual-summary-schema" src/ == 1`
+- [x] 3.2 No schema.api references: `! grep -r "schema\.api" src/ test/`
+- [x] 3.3 Linting passes: `clojure -M:dev lint`
+- [x] 3.4 All tests pass: `clojure -M:test` (regression check)
 
 #### Manual
 
