@@ -470,31 +470,31 @@ All changes are compile-time or validation-time; no new runtime computations add
 
 #### Automated
 
-- [x] 1.1 Verify zero imports: `grep -r "schema\.api" src/ test/` returns 0 results
-- [x] 1.2 Delete schema file: `test ! -f src/com/apriary/schema/api.clj`
-- [x] 1.3 Linting passes: `clojure -M:dev lint` (clj-kondo)
-- [x] 1.4 Unit tests pass: `clojure -M:test`
-- [x] 1.5 Integration tests pass (CI)
+- [x] 1.1 Verify zero imports: `grep -r "schema\.api" src/ test/` returns 0 results — 790dbaa
+- [x] 1.2 Delete schema file: `test ! -f src/com/apriary/schema/api.clj` — 790dbaa
+- [x] 1.3 Linting passes: `clojure -M:dev lint` (clj-kondo) — 790dbaa
+- [x] 1.4 Unit tests pass: `clojure -M:test` — 790dbaa
+- [x] 1.5 Integration tests pass (CI) — 790dbaa
 
 #### Manual
 
-- [x] 1.6 Git diff shows only expected changes (schema/api.clj deletion + summaries_view.clj docstring)
+- [x] 1.6 Git diff shows only expected changes (schema/api.clj deletion + summaries_view.clj docstring) — 790dbaa
 
 ### Phase 2: Fix Schema Drift (C3)
 
 #### Automated
 
-- [ ] 2.1 Schema updated: `grep ":max 50000" src/com/apriary/schema.clj` succeeds
-- [ ] 2.2 No schema 10k limits: `! grep ":max 10000" src/com/apriary/schema.clj`
-- [ ] 2.3 CSV validator updated: `grep -E "(> \(count .* 50000)" src/com/apriary/services/csv_import.clj` succeeds
-- [ ] 2.4 No CSV 10k limits: `! grep "10000\|10,000" src/com/apriary/services/csv_import.clj`
-- [ ] 2.5 Unit tests pass: `clojure -M:test` (csv_import_test.clj GREEN)
-- [ ] 2.6 Linting passes: `clojure -M:dev lint`
-- [ ] 2.7 Integration tests pass (CI)
+- [x] 2.1 Schema updated: `grep ":max 50000" src/com/apriary/schema.clj` succeeds
+- [x] 2.2 No schema 10k limits: `! grep ":max 10000" src/com/apriary/schema.clj`
+- [x] 2.3 CSV validator updated: `grep -E "(> \(count .* 50000)" src/com/apriary/services/csv_import.clj` succeeds
+- [x] 2.4 No CSV 10k limits: `! grep "10000\|10,000" src/com/apriary/services/csv_import.clj`
+- [x] 2.5 Unit tests pass: `clojure -M:test` (csv_import_test.clj GREEN)
+- [x] 2.6 Linting passes: `clojure -M:dev lint`
+- [x] 2.7 Integration tests pass (CI)
 
 #### Manual
 
-- [ ] 2.8 Git diff confirms exactly 9 changes (schema.clj + csv_import.clj + schema/api.clj doc + tests)
+- [ ] 2.8 Git diff confirms expected changes (schema.clj + csv_import.clj + tests)
 - [ ] 2.9 CSV import and manual entry both accept same max length (consistency verified)
 
 ### Phase 3: Verify Schema Duplication Eliminated (C5)

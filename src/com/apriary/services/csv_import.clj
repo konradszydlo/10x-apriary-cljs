@@ -93,7 +93,7 @@
   "Validate a single CSV row.
 
    Validation rules:
-   - observation field: required, 50-10,000 characters after trim
+   - observation field: required, 50-50,000 characters after trim
    - observation_date: optional, DD-MM-YYYY format if provided
    - hive_number: optional
    - special_feature: optional
@@ -132,10 +132,10 @@
                  :reason (str "Observation text too short (" (count trimmed-obs)
                               " characters). Minimum: 50 characters.")}]
 
-        (> (count trimmed-obs) 10000)
+        (> (count trimmed-obs) 50000)
         [:error {:row-number row-number
                  :reason (str "Observation text too long (" (count trimmed-obs)
-                              " characters). Maximum: 10,000 characters.")}]
+                              " characters). Maximum: 50,000 characters.")}]
 
         ;; Validate date format if provided
         :else

@@ -34,7 +34,7 @@
              [:summary/hive-number {:optional true} [:maybe :string]]
              [:summary/observation-date {:optional true} [:maybe :string]]
              [:summary/special-feature {:optional true} [:maybe :string]]
-             [:summary/content           [:string {:min 50 :max 10000}]]]
+             [:summary/content           [:string {:min 50 :max 50000}]]]
 
    :password-reset-token/id :uuid
    :password-reset-token [:map {:closed true}
