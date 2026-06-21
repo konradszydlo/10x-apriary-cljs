@@ -62,9 +62,15 @@ function installSkills(projectRoot) {
     const sourceSkillDir = path.join(sourceDir, skillName);
     const targetSkillDir = path.join(targetDir, skillName);
 
-    // Delete old version first (if exists)
+    // Backup old version first (if exists)
     if (fs.existsSync(targetSkillDir)) {
-      fs.rmSync(targetSkillDir, { recursive: true, force: true });
+      const backupDir = `${targetSkillDir}.backup`;
+      // Remove old backup if it exists
+      if (fs.existsSync(backupDir)) {
+        fs.rmSync(backupDir, { recursive: true, force: true });
+      }
+      // Create backup
+      fs.renameSync(targetSkillDir, backupDir);
     }
 
     // Create target skill directory
@@ -124,6 +130,9 @@ function injectRules(projectRoot) {
   let claudeContent = '';
   if (fs.existsSync(claudePath)) {
     claudeContent = fs.readFileSync(claudePath, 'utf8');
+    // Create backup before modification
+    const backupPath = `${claudePath}.backup`;
+    fs.writeFileSync(backupPath, claudeContent, 'utf8');
   }
 
   // Check if sentinels already exist
@@ -193,9 +202,14 @@ function install() {
     // Exit with success (don't break npm install on warnings)
     process.exit(0);
   } catch (error) {
-    console.warn(`Warning: ${PACKAGE_NAME} installation encountered an error:`);
-    console.warn(error.message);
-    console.warn('Installation will continue, but toolkit may not be fully functional.');
+    console.error(`\n❌ Error during ${PACKAGE_NAME} installation:`);
+    console.error(error.message);
+    if (error.stack) {
+      console.error('\nStack trace:');
+      console.error(error.stack);
+    }
+    console.error('\n⚠️  Installation failed. Package may not be fully functional.');
+    console.error('Please check the error above and retry installation.');
 
     // Exit with success to not break npm install
     process.exit(0);
