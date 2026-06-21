@@ -554,16 +554,16 @@ on:
 
 #### Automated
 
-- [x] 1.1 Package structure validated — f0eaf42
-- [x] 1.2 Package.json parses — f0eaf42
-- [x] 1.3 Install script has no syntax errors — f0eaf42
-- [x] 1.4 Uninstall script has no syntax errors — f0eaf42
-- [x] 1.5 Test fixture passes — f0eaf42
-- [x] 1.6 npm pack succeeds — f0eaf42
+- [x] 1.1 Package structure validated — 23b0683
+- [x] 1.2 Package.json parses — 23b0683
+- [x] 1.3 Install script has no syntax errors — 23b0683
+- [x] 1.4 Uninstall script has no syntax errors — 23b0683
+- [x] 1.5 Test fixture passes — 23b0683
+- [x] 1.6 npm pack succeeds — 23b0683
 
 #### Manual
 
-- [x] 1.7 Manual installer test in /tmp/test-consumer — f0eaf42
+- [x] 1.7 Manual installer test in /tmp/test-consumer — 23b0683
 
 ### Phase 2: Skills Content
 
