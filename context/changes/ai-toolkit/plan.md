@@ -569,15 +569,15 @@ on:
 
 #### Automated
 
-- [x] 2.1 All SKILL.md files exist
-- [x] 2.2 Frontmatter validation script passes
-- [x] 2.3 Rules document exists
-- [x] 2.4 npm pack still succeeds
+- [x] 2.1 All SKILL.md files exist — 617952b
+- [x] 2.2 Frontmatter validation script passes — 617952b
+- [x] 2.3 Rules document exists — 617952b
+- [x] 2.4 npm pack still succeeds — 617952b
 
 #### Manual
 
-- [x] 2.5 Skills content reviewed (Clojure-specific, not TypeScript)
-- [x] 2.6 Installer test with real skills
+- [x] 2.5 Skills content reviewed (Clojure-specific, not TypeScript) — 617952b
+- [x] 2.6 Installer test with real skills — 617952b
 
 ### Phase 3: CI/CD & Publishing
 
