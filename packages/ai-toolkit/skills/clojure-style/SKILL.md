@@ -105,7 +105,7 @@ clj-kondo --lint src/ --fail-level error
 
 ### Configuration
 
-From `.clj-kondo/config.edn:1-18`:
+The project's `.clj-kondo/config.edn` contains:
 
 ```clojure
 {:linters {:unresolved-symbol {:level :warning

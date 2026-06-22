@@ -54,20 +54,20 @@ A module is a map with:
                          :delete delete-api}]]})
 ```
 
-**Variation 2: Schema-only module** (from `schema.clj:62`)
+**Variation 2: Schema-only module** (from `src/com/apriary/schema.clj:62`)
 ```clojure
 ;; No routes - just schema registration
 (def module
   {:schema schema-definitions})
 ```
 
-**Variation 3: Empty module with delegated routes** (from `summaries.clj:387`)
+**Variation 3: Empty module with delegated routes** (from `src/com/apriary/pages/summaries.clj:387`)
 ```clojure
 ;; Routes defined in views, module just provides namespace hook
 (def module {})
 ```
 
-**Variation 4: API-only module** (from `generations.clj:119`)
+**Variation 4: API-only module**
 ```clojure
 ;; No web routes - API endpoints only
 (def module
@@ -133,18 +133,18 @@ After `xt/entity`, verify ownership (from `summary.clj:155-171`):
 
 ### Handler Context: `biff/submit-tx`
 
-From `src/com/apriary/auth.clj:82-92`:
+In Biff handlers with full context:
 
 ```clojure
-(defn signup-handler [{:keys [biff/db params] :as ctx}]
+(defn create-handler [{:keys [biff/db params] :as ctx}]
   ;; In handler - use biff/submit-tx
   (biff/submit-tx ctx
-    [{:db/doc-type :user
-      :user/email email
-      :user/password-hash (hash-password password)}])
+    [{:db/doc-type :entity
+      :entity/user-id (:session/user-id ctx)
+      :entity/content (:content params)}])
   
   {:status 303
-   :headers {"Location" "/app"}})
+   :headers {"Location" "/success"}})
 ```
 
 ### Service Context: `xt/submit-tx`

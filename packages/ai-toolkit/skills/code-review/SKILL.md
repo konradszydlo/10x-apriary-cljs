@@ -278,12 +278,12 @@ Summary:
 
 ```
 [CRITICAL] RLS/Security: Query missing user-id filter
-File: src/com/apriary/services/product.clj:45
+File: src/com/example/service.clj:45
 Why: Query returns all products without user ownership check
 Fix: Add [:product/user-id user-id] to :where clause
 
 [WARNING] Error Handling: Empty catch block
-File: src/com/apriary/handlers/api.clj:78
+File: src/com/example/handler.clj:78
 Why: Swallowed exception prevents debugging
 Fix: Log error or return [:error {...}] tuple
 

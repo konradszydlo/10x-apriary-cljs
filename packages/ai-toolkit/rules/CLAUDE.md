@@ -32,12 +32,14 @@ Two legitimate error-handling patterns coexist:
   (throw (IllegalArgumentException. "content is required")))
 ```
 
-Error tuples document their error codes:
-- `INVALID_UUID` - UUID format is invalid
-- `NOT_FOUND` - Resource doesn't exist or RLS violation
-- `VALIDATION_ERROR` - Input validation failed
-- `FORBIDDEN` - Authorization failure
-- `INTERNAL_ERROR` - Unexpected system error
+Error tuples document their error codes (always strings, not keywords):
+- `"INVALID_UUID"` - UUID format is invalid
+- `"NOT_FOUND"` - Resource doesn't exist or RLS violation
+- `"VALIDATION_ERROR"` - Input validation failed
+- `"FORBIDDEN"` - Authorization failure
+- `"INTERNAL_ERROR"` - Unexpected system error
+
+Format: `[:error {:code "ERROR_CODE" :message "description"}]`
 
 ## Guard Clauses and Flow Control
 
@@ -63,6 +65,8 @@ Error tuples document their error codes:
 - Define all entity schemas in `schema.clj` using Malli
 - Use closed maps: `[:map {:closed true} ...]`
 - Validate at boundaries: API handlers, database writes
+- Always validate data against Malli schemas before writing to XTDB
+- Use `[:xtdb.api/put entity]` for creates/updates and `[:xtdb.api/delete id]` for deletes
 - Type predicates: `inst?`, `:uuid`, `:string`, `:int`, `[:enum :a :b]`
 - Optional fields: `[:field {:optional true} [:maybe :type]]`
 
