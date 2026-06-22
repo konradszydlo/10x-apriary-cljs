@@ -96,8 +96,8 @@
       (is (str/includes? (:reason result) "too short"))
       (is (str/includes? (:reason result) "50 characters"))))
 
-  (testing "Observation too long (> 10,000 chars)"
-    (let [long-text (apply str (repeat 10001 "x"))
+  (testing "Observation too long (> 50,000 chars)"
+    (let [long-text (apply str (repeat 50001 "x"))
           row [long-text "A-01" "" ""]
           column-indices {:observation 0 :hive-number 1 :observation-date 2 :special-feature 3}
           [status result] (csv-service/validate-csv-row row 3 column-indices)]
@@ -105,7 +105,7 @@
       (is (= status :error))
       (is (= (:row-number result) 3))
       (is (str/includes? (:reason result) "too long"))
-      (is (str/includes? (:reason result) "10,000"))))
+      (is (str/includes? (:reason result) "50,000"))))
 
   (testing "Observation at exactly 50 chars (boundary test)"
     (let [row [(apply str (repeat 50 "x")) "" "" ""]
@@ -115,13 +115,13 @@
       (is (= status :ok))
       (is (= (count (:observation result)) 50))))
 
-  (testing "Observation at exactly 10,000 chars (boundary test)"
-    (let [row [(apply str (repeat 10000 "x")) "" "" ""]
+  (testing "Observation at exactly 50,000 chars (boundary test)"
+    (let [row [(apply str (repeat 50000 "x")) "" "" ""]
           column-indices {:observation 0 :hive-number 1 :observation-date 2 :special-feature 3}
           [status result] (csv-service/validate-csv-row row 1 column-indices)]
 
       (is (= status :ok))
-      (is (= (count (:observation result)) 10000)))))
+      (is (= (count (:observation result)) 50000)))))
 
 (deftest validate-csv-row-empty-observation-test
   (testing "Empty observation field"
@@ -382,9 +382,9 @@
                     :summary/content (:observation csv-row)}]
         (is (some? (m/explain summary-schema entity)))))
 
-    (testing "Observation length constraint matches CSV validator - maximum (10,000 chars)"
-      ;; 10,000 chars should pass
-      (let [csv-row {:observation (apply str (repeat 10000 "x"))
+    (testing "Observation length constraint matches CSV validator - maximum (50,000 chars)"
+      ;; 50,000 chars should pass
+      (let [csv-row {:observation (apply str (repeat 50000 "x"))
                      :hive-number nil
                      :observation-date nil
                      :special-feature nil}
@@ -401,8 +401,8 @@
                     :summary/content (:observation csv-row)}]
         (is (nil? (m/explain summary-schema entity))))
 
-      ;; 10,001 chars should fail
-      (let [csv-row {:observation (apply str (repeat 10001 "x"))
+      ;; 50,001 chars should fail
+      (let [csv-row {:observation (apply str (repeat 50001 "x"))
                      :hive-number nil
                      :observation-date nil
                      :special-feature nil}
