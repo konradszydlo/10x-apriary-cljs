@@ -1,0 +1,96 @@
+name: Publish AI Toolkit
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validate:
+    name: Validate Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@konradszydlo"
+
+      - name: Verify skill files exist
+        run: |
+          test -f packages/ai-toolkit/skills/code-review/SKILL.md
+          test -f packages/ai-toolkit/skills/biff-patterns/SKILL.md
+          test -f packages/ai-toolkit/skills/clojure-style/SKILL.md
+          echo "✓ All skill files exist"
+
+      - name: Validate frontmatter
+        run: |
+          node -e "
+          const fs = require('fs');
+          const skills = ['code-review', 'biff-patterns', 'clojure-style'];
+
+          skills.forEach(skill => {
+            const content = fs.readFileSync(\`packages/ai-toolkit/skills/\${skill}/SKILL.md\`, 'utf8');
+            const match = content.match(/^---[\r\n]+([\s\S]+?)[\r\n]+---/);
+
+            if (!match) {
+              throw new Error(\`\${skill}: No frontmatter found\`);
+            }
+
+            const frontmatter = match[1];
+
+            if (!frontmatter.includes('name:')) {
+              throw new Error(\`\${skill}: Missing 'name:' in frontmatter\`);
+            }
+            if (!frontmatter.includes('description:')) {
+              throw new Error(\`\${skill}: Missing 'description:' in frontmatter\`);
+            }
+            if (!frontmatter.includes('allowed-tools:')) {
+              throw new Error(\`\${skill}: Missing 'allowed-tools:' in frontmatter\`);
+            }
+
+            console.log(\`✓ \${skill}: Valid frontmatter\`);
+          });
+
+          console.log('✓ All frontmatter validation passed');
+          "
+
+      - name: Dry-run npm pack
+        run: |
+          cd packages/ai-toolkit
+          npm pack --dry-run
+          echo "✓ Package structure valid"
+
+  publish:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@konradszydlo"
+
+      - name: Publish to GitHub Packages
+        run: |
+          cd packages/ai-toolkit
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

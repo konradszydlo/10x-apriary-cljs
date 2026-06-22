@@ -583,12 +583,12 @@ on:
 
 #### Automated
 
-- [ ] 3.1 Workflow file exists
-- [ ] 3.2 Workflow syntax valid
-- [ ] 3.3 Permissions include packages:write
-- [ ] 3.4 NODE_AUTH_TOKEN used
-- [ ] 3.5 Validate job exists
-- [ ] 3.6 Publish job conditional
+- [x] 3.1 Workflow file exists
+- [x] 3.2 Workflow syntax valid
+- [x] 3.3 Permissions include packages:write
+- [x] 3.4 NODE_AUTH_TOKEN used
+- [x] 3.5 Validate job exists
+- [x] 3.6 Publish job conditional
 
 #### Manual
 

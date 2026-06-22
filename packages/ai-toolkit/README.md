@@ -131,6 +131,81 @@ The uninstaller:
 
 Current version: `0.1.0`
 
+## CI/CD & Publishing
+
+### Automated Workflow
+
+This package is automatically published to GitHub Packages via GitHub Actions:
+
+- **Validation**: Runs on all pushes and pull requests
+  - Verifies skill files exist
+  - Validates YAML frontmatter in all skills
+  - Runs `npm pack --dry-run` to check package structure
+
+- **Publishing**: Only runs on pushes to `master` branch
+  - Depends on validation passing
+  - Publishes to `https://github.com/konradszydlo/10x-apriary-cljs/pkgs/npm/ai-toolkit`
+  - Uses `GITHUB_TOKEN` for authentication (no setup needed)
+
+### First Publish
+
+When merged to master, the workflow will:
+1. Run validation checks
+2. Publish `@konradszydlo/ai-toolkit@0.1.0` to GitHub Packages
+3. Package will be available at: `https://github.com/konradszydlo/10x-apriary-cljs/pkgs/npm/ai-toolkit`
+
+### Local Testing
+
+You can test the package locally before pushing:
+
+```bash
+# Validate package structure
+cd packages/ai-toolkit
+npm pack --dry-run
+
+# Test frontmatter validation (from repo root)
+node -e "
+const fs = require('fs');
+const skills = ['code-review', 'biff-patterns', 'clojure-style'];
+skills.forEach(skill => {
+  const content = fs.readFileSync(\`packages/ai-toolkit/skills/\${skill}/SKILL.md\`, 'utf8');
+  const match = content.match(/^---[\r\n]+([\s\S]+?)[\r\n]+---/);
+  if (!match || !match[1].includes('name:') || !match[1].includes('description:')) {
+    throw new Error(\`\${skill}: Invalid frontmatter\`);
+  }
+  console.log(\`✓ \${skill}: Valid frontmatter\`);
+});
+"
+```
+
+**Note**: Full publish testing requires pushing to master. The workflow uses ephemeral `GITHUB_TOKEN` which is only available in GitHub Actions.
+
+### Version Bumping
+
+For future releases:
+
+1. Update version in `packages/ai-toolkit/package.json`
+2. Commit and push to master
+3. Workflow will publish the new version automatically
+
+### Workflow Troubleshooting
+
+**Validation job fails**:
+- Check that all skill files exist with valid frontmatter
+- Ensure `npm pack --dry-run` succeeds locally
+
+**Publish job fails**:
+- Verify `packages: write` permission is set in workflow
+- Check that `NODE_AUTH_TOKEN` is properly passed
+- Ensure package name matches repository scope (`@konradszydlo`)
+
+**Package not appearing**:
+- Check GitHub Actions logs for error messages
+- Verify you're on `master` branch (publish only runs there)
+- Check repository Settings → Packages for published packages
+
+For more information, see [GitHub Packages documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry).
+
 ## License
 
 UNLICENSED - Internal team use only.
